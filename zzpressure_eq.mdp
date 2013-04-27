@@ -1,0 +1,49 @@
+title		= Stockmayer NPT equilibration 
+define		= -DPOSRES	; position restrain the stockmayer particle
+; Run parameters
+integrator	= md		; leap-frog integrator
+dt		= 0.002 	; 2.0 fs
+nsteps		= 50000		; 2.0 fs * 50000 = 100 ps
+; Output control: Save every .4 fs * 20 = 8fs
+nstxout		= 1000
+nstvout		= 1000
+nstenergy	= 1000
+nstlog		= 1000
+; Bond parameters
+continuation	= no		; first dynamics run
+constraint_algorithm = lincs	; holonomic constraints 
+constraints	= all-bonds	; all bonds (even heavy atom-H bonds) constrained
+lincs_iter	= 1		; accuracy of LINCS
+lincs_order	= 4		; also related to accuracy
+; Neighborsearching
+ns_type		= grid		; search neighboring grid cells
+nstlist		= 5		; 10 fs
+rlist		= 1.0		; short-range neighborlist cutoff (in nm)
+rcoulomb	= 1.0		; short-range electrostatic cutoff (in nm)
+rvdw		= 1.0		; short-range van der Waals cutoff (in nm)
+; Electrostatics
+coulombtype	= PME		; Particle Mesh Ewald for long-range electrostatics
+pme_order	= 4		; cubic interpolation
+fourierspacing	= 0.16		; grid spacing for FFT
+ewald_rtol	= 1e-5
+optimize_fft	= yes
+; Temperature coupling is on
+tcoupl		= V-rescale	; modified Berendsen thermostat
+tc-grps		= SOL SMY 	; two coupling groups - more accurate
+tau_t		= 0.1 0.1		; time constant, in ps
+ref_t		= 300 300		; reference temperature, one for each group, in K
+; Pressure coupling is off
+pcoupl		= Berendsen 		; Berendsen barostat
+pcoupltype 	= isotropic
+tau_p		= 2.0
+ref_p		= 1.0
+compressibility	= 4.5e-5
+refcoord_scaling= com
+; Periodic boundary conditions
+pbc		= xyz		; 3-D PBC
+; Dispersion correction
+DispCorr	= EnerPres	; account for cut-off vdW scheme
+; Velocity generation
+gen_vel		= yes		; assign velocities from Maxwell distribution
+gen_temp	= 300		; temperature for Maxwell distribution
+gen_seed	= -1		; generate a random seed
