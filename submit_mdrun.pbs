@@ -1,0 +1,11 @@
+#PBS -N fmo_gromacs_mdrun
+#PBS -q regular
+#PBS -l mppwidth=240
+#PBS -l walltime=02:00:00
+#PBS -j oe
+#PBS -V
+
+cd $PBS_O_WORKDIR
+module load gromacs
+
+aprun -n 240 mdrun_mpi -v -deffnm md >& qsub_mdrun.log
