@@ -1,0 +1,11 @@
+#PBS -N fmo_gromacs
+#PBS -l mppwidth=1
+#PBS -l walltime=00:30:00
+#PBS -j oe
+#PBS -V
+
+cd $PBS_O_WORKDIR
+module load gromacs
+
+aprun -n 1 grompp_mpi  -c md.gro -p ions.top -t md.cpt -f ../md_directions.mdp -o md.tpr >& qsub_grompp.log
+aprun -n 1 mdrun_mpi -v -deffnm md >& qsub_mdrun.log
