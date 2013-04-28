@@ -5,10 +5,10 @@ integrator	= md		; leap-frog integrator
 dt		= 0.002		; 2 fs
 nsteps		= 500		; 2 * 500 = 1 ps
 ; Output control - Save every .4 fs * 20 = 8 fs
-nstxout		= 0 
+nstxout		= 0
 nstvout		= 0
-nstenergy	= 0 
-nstlog		= 0 
+nstenergy	= 0
+nstlog		= 0
 ; Bond parameters
 continuation	= yes		; first dynamics run
 constraint_algorithm = lincs	; holonomic constraints 

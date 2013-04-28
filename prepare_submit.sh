@@ -84,6 +84,10 @@ then
      exit 1
 fi
 
+GRO=$(pwd)/$GRO
+TOP=$(pwd)/$TOP
+CPT=$(pwd)/$CPT
+MDP=$(pwd)/$MDP
 
 
 echo $CORES
@@ -91,6 +95,7 @@ echo $TIME
 
 #mdrun $CORES times. Make a new directory for each.
 DIGITS=${#CORES}
+PREVIOUS=
 for CTR in $(eval echo {1..$CORES})
 do
 	CTR_DIGITS=${#CTR}
@@ -101,12 +106,18 @@ do
 	mkdir INIT
 	mkdir TRAJ
 	cd INIT
-	echo "grompp -f $MDP -c $GRO -p $TOP -t $CPT -o init$STR.tpr"
+	if [[ -z $PREVIOUS ]]
+		then grompp -f $MDP -c $GRO -p $TOP -t $CPT -o init$STR.tpr
+	else
+		grompp -f $MDP -c $GRO -p $TOP -t $PREVIOUS -o init$STR.tpr
+	fi
+		
 	touch init$STR.tpr
 	if [ $PLL -eq 0 ]
-		then echo "mdrun -v -deffnm init$STR"
+		then mdrun -v -deffnm init$STR
 	else
-		echo "aprun -n $PLL mdrun_mpi >& test.log"
+		aprun -n $PLL mdrun_mpi >& test.log
 	fi
+	PREVIOUS=$(pwd)/init$STR.cpt
 	cd ../..
 done
