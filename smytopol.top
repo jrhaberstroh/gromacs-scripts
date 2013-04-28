@@ -1,0 +1,33 @@
+#include "amber03.ff/forcefield.itp"
+
+[ atomtypes ]
+; name  at.num    mass    charge ptype?  sigma  epsilon
+POS     301      90000.0   0.000    A    0.900   0.500
+NEG     302      90000.0   0.000    A    0.900   0.500
+; No charge is given to the atoms originally; it is split by an "excitation" controlled by lambda
+
+[ moleculetype ]
+; name nrexcl
+SMY    3
+
+[ atoms ]
+;   nr      typeA      resnr   residue  name   cgnr     chargeA       massA  typeB  chargeB   massB
+    1       POS            1      SMY     PP     1       0.000      90000.0    POS    4.100  90000.0
+    2       NEG            1      SMY     NN     1       0.000      90000.0    NEG   -4.100  90000.0
+; Atoms can have arbitrary charge because they share a charge group
+
+[ constraints ]
+; constrain the distance to .2082A to make the dipole charges in units of debyes
+; Current distance puts charges in units of 5 debyes
+; Note: distances are in nm for GROMACS
+; atom1 atom2 type dist 
+    1    2   1   .104100
+
+[ system ]
+SMY in water
+
+#include "amber03.ff/tip4p.itp"
+
+[ molecules ]
+SMY    1
+SOL   885

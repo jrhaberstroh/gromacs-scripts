@@ -1,0 +1,28 @@
+gromacs-scripts are a collection of scripts to be used in conjunction with gromacs for a wide range of things: data processing, trajectory generation, input files, topologies...
+
+============================
+	Equilibration
+============================
+new_equilibrate.sh:
+>> zzenergy_min.mdp
+>> zzpressure_eq.mdp
+>> zzpressure_cont.mdp
+
+make_traj.sh:
+>> eqstep_md.mdp
+>> neq_md.mdp
+
+=============================
+	Path Sampling
+=============================
+cluster_prepare.sh: 
+>> eqprep_md.mdp
+
+cluster_submit.sh:
+>> eqstep_mp.mdp
+>> neq_md.mdp
+
+=============================
+	Analysis
+=============================
+analysis_average_traj.py: Takes a collection of .xvg files as an argument and returns the average of the energies as a function of time.
