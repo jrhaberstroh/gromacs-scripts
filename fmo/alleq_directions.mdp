@@ -1,0 +1,47 @@
+title		= TMV all eq
+; Run parameters
+integrator	= md		; leap-frog integrator
+nsteps		= 50000		; 2 * 50000 = 100 ps
+dt		= 0.002		; 2 fs
+; Output control
+nstxout		= 100		; save coordinates every 0.2 ps
+nstvout		= 100		; save velocities every 0.2 ps
+nstenergy	= 100		; save energies every 0.2 ps
+nstlog		= 100		; update log file every 0.2 ps
+; Bond stuff
+continuation 	= yes
+constraint_algorithm = lincs
+constraints	= all-bonds
+lincs_iter	= 1
+lincs_order	= 4
+; Neighbor stuff
+ns_type		= grid
+nstlist		= 5		; output list every 10 fs
+rlist		= 1.0
+rcoulomb	= 1.0		; 10 angstrom coulomb cutoff
+rvdw		= 1.0		; 14 angstrom Van Der Waals cutoff
+; Electrostatics
+coulombtype	= PME
+pme_order	= 4
+fourierspacing	= 0.16
+ewald_rtol	= 1e-5
+optimize_fft	= yes
+; Berendsen temperature coupling is on in two groups
+Tcoupl		= V-rescale
+tc-grps		= protein Non-Protein 	; Must span all atoms in simulation
+tau_t		= 0.1	0.1
+ref_t		= 300	300
+; Pressure coupling is on
+Pcoupl		= Berendsen
+pcoupltype	= isotropic
+tau_p		= 2.0
+ref_p		= 1.0
+compressibility	= 4.5e-5
+; Boundaries
+pbc 		= xyz
+; Dispersion correction
+DispCorr	= EnerPres	; correct for vdw cutoff
+; Generate velocites is on at 300 K.
+gen_vel		= yes
+gen_temp	= 300
+gen_seed	= -1
