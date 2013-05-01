@@ -1,0 +1,37 @@
+title		= TMV
+cpp		= /usr/bin/cpp ; the c pre-processor
+constraints	= all-bonds
+integrator	= md
+dt		= 0.002		; ps !
+nsteps		= 5000		; total 20.0 ps
+nstcomm		= 1
+nstxout		= 5		; collect data every .5 ps
+nstvout		= 5		; collect velocities every 2.0 ps
+nstfout		= 5		; never collect forces
+nstlist		= 5
+ns_type		= grid
+rlist		= 0.3
+coulombtype	= PME
+rcoulomb	= 0.3		; 9 angstrom coulomb cutoff
+rvdw		= 0.3		; 14 angstrom Van Der Waals cutoff
+fourierspacing	= 0.12
+fourier_nx	= 0
+fourier_ny	= 0
+fourier_nz	= 0
+pme_order	= 4
+ewald_rtol	= 1e-5
+optimize_fft	= yes
+; Berendsen temperature coupling is on in two groups
+Tcoupl		= berendsen
+tau_t		= 0.1	0.1
+tc-grps		= protein sol 	; Must span all atoms in simulation
+ref_t		= 300	300
+; Pressure coupling is on
+Pcoupl		= berendsen
+tau_p		= 0.5
+compressibility	= 4.5e-5
+ref_p		= 1.0
+; Generate velocites is on at 300 K.
+gen_vel		= yes
+gen_temp	= 300.0
+gen_seed	= 173529

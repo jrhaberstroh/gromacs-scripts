@@ -1,16 +1,16 @@
-title		= Stockmayer equilibrium generation run
-define		= -DPOSRES	; position restrain the stockmayer particle
+title		= FMO with BChlA Equilibration 1: NVT
+define		= -DPOSRES	; position restrain the protein
 ; Run parameters
 integrator	= md		; leap-frog integrator
-dt		= 0.0004	; .4 fs
-nsteps		= 5000		; .4 * 5000 = 2 ps
-; Output control - Save every .4 fs * 20 = 8 fs
-nstxout		= 20 
-nstvout		= 20
-nstenergy	= 20 
-nstlog		= 20 
+nsteps		= 50000		; 2 * 50000 = 100 ps
+dt		= 0.002		; 2 fs
+; Output control
+nstxout		= 100		; save coordinates every 0.2 ps
+nstvout		= 100		; save velocities every 0.2 ps
+nstenergy	= 100		; save energies every 0.2 ps
+nstlog		= 100		; update log file every 0.2 ps
 ; Bond parameters
-continuation	= yes		; first dynamics run
+continuation	= no		; first dynamics run
 constraint_algorithm = lincs	; holonomic constraints 
 constraints	= all-bonds	; all bonds (even heavy atom-H bonds) constrained
 lincs_iter	= 1		; accuracy of LINCS
@@ -25,30 +25,18 @@ rvdw		= 1.0		; short-range van der Waals cutoff (in nm)
 coulombtype	= PME		; Particle Mesh Ewald for long-range electrostatics
 pme_order	= 4		; cubic interpolation
 fourierspacing	= 0.16		; grid spacing for FFT
-ewald_rtol	= 1e-5
-optimize_fft	= yes
 ; Temperature coupling is on
 tcoupl		= V-rescale	; modified Berendsen thermostat
-tc-grps		= SOL SMY 	; two coupling groups - more accurate
-tau_t		= 0.1 0.1		; time constant, in ps
-ref_t		= 300 300		; reference temperature, one for each group, in K
+tc-grps		= protein non-protein	; two coupling groups - more accurate
+tau_t		= 0.1 0.1 		; time constant, in ps
+ref_t		= 300 300 	; reference temperature, one for each group, in K
 ; Pressure coupling is off
-pcoupl		= Parrinello-Rahman	; Berendsen barostat
-pcoupltype 	= isotropic
-tau_p		= 2.0
-ref_p		= 1.0
-compressibility	= 4.5e-5
-refcoord_scaling= com
+pcoupl		= no 		; no pressure coupling in NVT
 ; Periodic boundary conditions
 pbc		= xyz		; 3-D PBC
 ; Dispersion correction
 DispCorr	= EnerPres	; account for cut-off vdW scheme
 ; Velocity generation
-gen_vel		= no		; assign velocities from Maxwell distribution
-; Site energy 
-free-energy	= yes
-init-lambda-state  = 0.0
-coul-lambdas	= 0.0 1.0
-separate-dhdl-file = yes
-nstcalcenergy	= 10		; Save every .4 fs * 10 = 4 fs
-nstdhdl		= 10		; Save every .4 fs * 10 = 4 fs
+gen_vel		= yes		; assign velocities from Maxwell distribution
+gen_temp	= 300		; temperature for Maxwell distribution
+gen_seed	= -1		; generate a random seed
