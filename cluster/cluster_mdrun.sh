@@ -20,7 +20,7 @@ OPTIONS:
    -t [*]  Location of .cpt file for continuation from equilibration
    -P      Number of cores per to run on, default is one full node on whichever selected cluster.
    -v      Verbose (default = false)
-   -1 (+)  Setup PBS for hopper@nersc. Hopper has nodes with 24 cores.
+   -1 (+)  Setup PBS for hopper@nersc. Hopper has nodes with 24 cores. Default queue is reg_1hour with walltime=01:00:00.
    -2 (+)  Setup PBS for cmserial on catamount@lbl (NOTE: Does not support -P, all jobs are run on single core)
    -q      Manual override for queue to submit to.
    -w      Walltime override
@@ -101,36 +101,37 @@ then
 fi
 
 if ! [[ -z $WARN ]]; then
-	$WARN="-maxwarn $WARN"
+	WARN="-maxwarn $WARN"
 fi
 
 if [ $CLUSTER = "HOPPER" ]; then
 	if [[ -z $QUEUE ]]; then
-		QUEUE="reg_1hour" #Default queue for Hopper
+		QUEUE="regular" #Default queue for Hopper
 	fi
 	if [[ -z $WALL ]]; then
 		WALL="01:00:00" #Default wall for Hopper
 	fi
 
 	# GENERATE THE SCRIPT
-	echo "#PBS -N gmx_traj_$BASE" > temp_submit.pbs
-	echo "#PBS -l mppwidth=$P_THREAD" >> temp_submit.pbs
-	echo "#PBS -l walltime=$WALL" >> temp_submit.pbs
-	echo "#PBS -j oe" >> temp_submit.pbs    # Join stdout and error
-	echo "#PBS -q $QUEUE" >> temp_submit.pbs
+	echo "#PBS -N gmx_$NAME" > $NAME.pbs
+	echo "#PBS -l mppwidth=$P_THREAD" >> $NAME.pbs
+	echo "#PBS -l walltime=$WALL" >> $NAME.pbs
+	echo "#PBS -j oe" >> $NAME.pbs    # Join stdout and error
+	echo "#PBS -q $QUEUE" >> $NAME.pbs
+	echo "#PBS -V" >> $NAME.pbs
 
-	echo "cd $INITWD/$dir" >> temp_submit.pbs
-	echo "module load gromacs" >> temp_submit.pbs
-	echo " " >> temp_submit.pbs
+	echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
+	echo "module load gromacs" >> $NAME.pbs
+	echo " " >> $NAME.pbs
 
-	mkdir $NAME
-	echo "aprun -n $P_THREAD grompp_mpi -f $MDP -p $TOP -c $GRO -t $CPT $WARN -o $NAME/$NAME.tpr" >> temp_submit.pbs
-	echo "cd $NAME" >> temp_submit.pbs
-	echo "aprun -n $P_THREAD mdrun_mpi -v -deffnm $NAME >& qsub_mdrun.log" >> temp_submit.pbs
+	echo "mkdir $NAME" >> $NAME.pbs
+	echo "aprun -n $P_THREAD grompp_mpi -f $MDP -p $TOP -c $GRO -t $CPT $WARN -o $NAME/$NAME.tpr" >> $NAME.pbs
+	echo "cd $NAME" >> $NAME.pbs
+	echo "aprun -n $P_THREAD mdrun_mpi -v -deffnm $NAME >& qsub_mdrun.log" >> $NAME.pbs
 	
 	# SUBMIT THE SCRIPT
 	if [[ $READY ]]; then 
-		qsub temp_submit.pbs
+		qsub $NAME.pbs
 	fi
 fi
 
@@ -145,24 +146,24 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 		echo "BASE: " $BASE
 	
 		# GENERATE THE SCRIPT
-		echo "#PBS -N gmx_traj_$BASE" > temp_submit.pbs
-		echo "#PBS -q cm_serial" >> temp_submit.pbs
-		echo "#PBS -l nodes=1:ppn=1:cmserial" >> temp_submit.pbs
-		#echo "#PBS -l walltime=01:00:00" >> temp_submit.pbs
-		echo "#PBS -j oe" >> temp_submit.pbs
+		echo "#PBS -N gmx_traj_$BASE" > $NAME.pbs
+		echo "#PBS -q cm_serial" >> $NAME.pbs
+		echo "#PBS -l nodes=1:ppn=1:cmserial" >> $NAME.pbs
+		#echo "#PBS -l walltime=01:00:00" >> $NAME.pbs
+		echo "#PBS -j oe" >> $NAME.pbs
 		
-		echo "cd $INITWD/$dir" >> temp_submit.pbs
-		echo "module load gromacs" >> temp_submit.pbs
-		echo " " >> temp_submit.pbs
+		echo "cd $INITWD/$dir" >> $NAME.pbs
+		echo "module load gromacs" >> $NAME.pbs
+		echo " " >> $NAME.pbs
 
 		#NOTE: NOT COMPLETE YET!	
-		#echo "grompp -f $MDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o TRAJ/traj -maxwarn 1" >> temp_submit.pbs
-		#echo "cd $INITWD/$dir/TRAJ" >> temp_submit.pbs
-		#echo "mdrun -nt 1 -v -deffnm traj >& qsub_mdrun.log" >> temp_submit.pbs
+		#echo "grompp -f $MDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o TRAJ/traj -maxwarn 1" >> $NAME.pbs
+		#echo "cd $INITWD/$dir/TRAJ" >> $NAME.pbs
+		#echo "mdrun -nt 1 -v -deffnm traj >& qsub_mdrun.log" >> $NAME.pbs
 
 		# SUBMIT THE SCRIPT
 		if [ $READY ]; then
-			qsub temp_submit.pbs
+			qsub $NAME.pbs
 		fi
 	fi
 fi
