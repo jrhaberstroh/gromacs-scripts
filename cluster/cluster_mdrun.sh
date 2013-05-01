@@ -24,6 +24,7 @@ OPTIONS:
    -2 (+)  Setup PBS for cmserial on catamount@lbl (NOTE: Does not support -P, all jobs are run on single core)
    -q      Manual override for queue to submit to.
    -w      Walltime override
+   -W      Max number of allowed warnings for grompp (Default = 0)
    -R      READY TO SUBMIT; pass this argument to run qsub immediately.
 EOF
 }
@@ -38,8 +39,9 @@ VERBOSE=
 CLUSTER=
 QUEUE=
 WALL=
+WARN=
 READY=
-while getopts “h:N:f:p:c:t:P:v:1:2:q:w:R” OPTION
+while getopts “h:N:f:p:c:t:P:v:1:2:q:w:W:R” OPTION
 do
      case $OPTION in
          h)
@@ -82,6 +84,9 @@ do
 	 w)
 	     WALL=$OPTARG
 	     ;;
+	 W)
+	     WARN=$OPTARG
+	     ;;
          ?)
              usage
              exit
@@ -95,6 +100,10 @@ then
      exit 1
 fi
 
+if ! [[ -z $WARN ]]; then
+	$WARN="-maxwarn $WARN"
+fi
+
 if [ $CLUSTER = "HOPPER" ]; then
 	if [[ -z $QUEUE ]]; then
 		QUEUE="reg_1hour" #Default queue for Hopper
@@ -102,7 +111,7 @@ if [ $CLUSTER = "HOPPER" ]; then
 	if [[ -z $WALL ]]; then
 		WALL="01:00:00" #Default wall for Hopper
 	fi
-		
+
 	# GENERATE THE SCRIPT
 	echo "#PBS -N gmx_traj_$BASE" > temp_submit.pbs
 	echo "#PBS -l mppwidth=$P_THREAD" >> temp_submit.pbs
@@ -115,7 +124,7 @@ if [ $CLUSTER = "HOPPER" ]; then
 	echo " " >> temp_submit.pbs
 
 	mkdir $NAME
-	echo "aprun -n $P_THREAD grompp_mpi -f $MDP -p $TOP -c $GRO -t $CPT -o $NAME/$NAME.tpr" >> temp_submit.pbs
+	echo "aprun -n $P_THREAD grompp_mpi -f $MDP -p $TOP -c $GRO -t $CPT $WARN -o $NAME/$NAME.tpr" >> temp_submit.pbs
 	echo "cd $NAME" >> temp_submit.pbs
 	echo "aprun -n $P_THREAD mdrun_mpi -v -deffnm $NAME >& qsub_mdrun.log" >> temp_submit.pbs
 	
