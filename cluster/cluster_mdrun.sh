@@ -41,7 +41,7 @@ QUEUE=
 WALL=
 WARN=
 READY=
-while getopts “h:N:f:p:c:t:P:v:1:2:q:w:W:R” OPTION
+while getopts “hN:f:p:c:t:P:v:12q:w:W:R” OPTION
 do
      case $OPTION in
          h)
