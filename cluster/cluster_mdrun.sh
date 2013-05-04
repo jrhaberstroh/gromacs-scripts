@@ -125,9 +125,10 @@ if [ $CLUSTER = "HOPPER" ]; then
 	echo " " >> $NAME.pbs
 
 	echo "if ! [[ -e $NAME ]]; then" >> $NAME.pbs
-	echo "\tmkdir $NAME" >> $NAME.pbs 
+	echo "	mkdir $NAME" >> $NAME.pbs 
 	echo "else" >> $NAME.pbs
-	echo "\trm -r $NAME/*; fi" >> $NAME.pbs
+	echo "	rm -r $NAME/*" >> $NAME.pbs
+	echo "fi" >> $NAME.pbs
 	echo "aprun -n 1 grompp_mpi -f $MDP -p $TOP -c $GRO -t $CPT $WARN -o $NAME/$NAME.tpr" >> $NAME.pbs
 	echo "cd $NAME" >> $NAME.pbs
 	echo "aprun -n $P_THREAD mdrun_mpi -v -deffnm $NAME >& qsub_mdrun.log" >> $NAME.pbs
