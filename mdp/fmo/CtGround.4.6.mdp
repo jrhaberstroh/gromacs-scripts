@@ -1,0 +1,52 @@
+title		= TMV
+; Run parameters
+integrator	= md
+dt		= 0.0005		; 2 fs !
+nsteps		= 1000000		; total .5 ns
+; Outputs every 10 fs
+nstxout		= 4000	 	; collect positions
+nstvout		= 100000 ; collect velocities
+nstxtcout	= 100000 ; compressed trajectory
+nstenergy	= 100000
+nstlog		= 10000
+; Bond stuff
+continuation 	= yes
+constraint_algorithm = lincs
+constraints	= all-bonds
+lincs_iter	= 1
+lincs_order	= 4
+; Neighbor stuff
+ns_type		= grid
+nstlist		= 5		; output list every 10 fs
+rlist		= 1.0
+rcoulomb	= 1.0		; 10 angstrom coulomb cutoff
+rvdw		= 1.0		; 14 angstrom Van Der Waals cutoff
+; Electrostatics
+coulombtype	= PME
+pme_order	= 4
+fourierspacing	= 0.16
+ewald_rtol	= 1e-5
+optimize_fft	= yes
+; Berendsen temperature coupling is on in two groups
+Tcoupl		= V-rescale
+tc-grps		= protein Non-Protein 	; Must span all atoms in simulation
+tau_t		= 0.1	0.1
+ref_t		= 300	300
+; Pressure coupling is on
+Pcoupl		= Parrinello-Rahman
+pcoupltype	= isotropic
+tau_p		= 2.0
+ref_p		= 1.0
+compressibility	= 4.5e-5
+; Boundaries
+pbc 		= xyz
+; Dispersion correction
+DispCorr	= EnerPres	; correct for vdw cutoff
+; Generate velocites is on at 300 K.
+gen_vel		= no
+free-energy	= yes
+init-lambda-state= 0.0
+coul-lambdas 	= 1.0 0.0
+separate-dhdl-file = yes
+nstcalcenergy	= 10	; Save every .4 fs * 10 = 5 fs
+nstdhdl		= 10	; Save every .4 fs * 10 = 5 fs
