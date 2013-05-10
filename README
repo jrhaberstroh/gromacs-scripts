@@ -31,4 +31,4 @@ cluster/cluster_traj_submit.sh:
 	Analysis
 =============================
 analysis/average_traj.py: Takes a collection of .xvg files as an argument and returns the average of the energies as a function of time.
-analysis/correlation.py: Takes a long .xvg file and spits out the correlation function
+analysis/autocorrelate.py: Takes a long .xvg file and spits out the correlation function
