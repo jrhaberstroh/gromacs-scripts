@@ -1,28 +1,34 @@
 gromacs-scripts are a collection of scripts to be used in conjunction with gromacs for a wide range of things: data processing, trajectory generation, input files, topologies...
 
 ============================
-	Equilibration
+	Simple MD
 ============================
-new_equilibrate.sh:
->> zzenergy_min.mdp
->> zzpressure_eq.mdp
->> zzpressure_cont.mdp
+cluster/cluster_equilibrate.sh:
+>> mdp/fmo/em_directions.mdp
+>> mdp/fmo/nvt_directions.mdp
+>> mdp/fmo/npt_directions.mdp
+>> mdp/smy_neq/em.mdp
+>> mdp/smy_neq/e_nvt.mdp
+>> mdp/smy_neq/e_npt.mdp
 
-make_traj.sh:
->> eqstep_md.mdp
->> neq_md.mdp
+cluster/cluster_mdrun.sh:
+>> mdp/fmo/CtExcite.4.6.mdp
+>> mdp/fmo/md_directions.mdp
+>> mdp/smy_neq/CtExcite.mdp
+>> mdp/smy_neq/CtGround.mdp
 
 =============================
 	Path Sampling
 =============================
-cluster_prepare.sh: 
->> eqprep_md.mdp
+cluster/cluster_traj_prepare.sh: 
+>> mdp/fmo/traj_spacer.mdp
 
-cluster_submit.sh:
->> eqstep_mp.mdp
->> neq_md.mdp
+cluster/cluster_traj_submit.sh:
+>> mdp/fmo/traj_micro_spacer.mdp
+>> mdp/fmo/Traj.4.6.mdp
 
 =============================
 	Analysis
 =============================
-analysis_average_traj.py: Takes a collection of .xvg files as an argument and returns the average of the energies as a function of time.
+analysis/average_traj.py: Takes a collection of .xvg files as an argument and returns the average of the energies as a function of time.
+analysis/autocorrelate.py: Takes a long .xvg file and spits out the correlation function
