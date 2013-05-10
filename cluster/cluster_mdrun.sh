@@ -113,7 +113,7 @@ if [ $CLUSTER = "HOPPER" ]; then
 	fi
 
 	# GENERATE THE SCRIPT
-	echo "#PBS -N gmx_$NAME" > $NAME.pbs
+	echo "#PBS -N $NAME-gmx-md" > $NAME.pbs
 	echo "#PBS -l mppwidth=$P_THREAD" >> $NAME.pbs
 	echo "#PBS -l walltime=$WALL" >> $NAME.pbs
 	echo "#PBS -j oe" >> $NAME.pbs    # Join stdout and error
@@ -140,34 +140,44 @@ if [ $CLUSTER = "HOPPER" ]; then
 fi
 
 if [ $CLUSTER = "CATAMOUNT" ]; then
-	if [ $P_THREAD -gt 1 ]; then
-		echo "ERROR: Catamount cluster does not have allow for threading in multi-tenancy serial mode, do not use -P option."
-	else
-		cd $INITWD/$dir
-		FULL=$(ls INIT | grep "\.cpt$" | head -n 1)
-		echo "FULL: " $FULL
-		BASE=${FULL//.cpt/}
-		echo "BASE: " $BASE
+	if [[ -z $QUEUE ]]; then
+		QUEUE="cm_normal" #Default queue for Hopper
+	fi
+	if [[ -z $WALL ]]; then
+		WALL="05:00:00" #Default wall for Hopper
+	fi
+
+	# GENERATE THE SCRIPT
+	echo "#PBS -N $NAME-gmx-md" > $NAME.pbs
+	echo "#PBS -q $QUEUE" >> $NAME.pbs
+	if [ $QUEUE = "cm_serial" ]; then
+		echo "#PBS -l nodes=1:ppn=1:cm_serial" >> $NAME.pbs
+	else 
+		echo "#PBS -l nodes=4:ppn=4:catamount" >> $NAME.pbs
+	fi
+	echo "#PBS -l walltime=$WALL" >> $NAME.pbs
+	echo "#PBS -j oe" >> $NAME.pbs
+	echo "#PBS -V" >> $NAME.pbs
 	
-		# GENERATE THE SCRIPT
-		echo "#PBS -N gmx_traj_$BASE" > $NAME.pbs
-		echo "#PBS -q cm_serial" >> $NAME.pbs
-		echo "#PBS -l nodes=1:ppn=1:cmserial" >> $NAME.pbs
-		#echo "#PBS -l walltime=01:00:00" >> $NAME.pbs
-		echo "#PBS -j oe" >> $NAME.pbs
-		
-		echo "cd $INITWD/$dir" >> $NAME.pbs
-		echo "module load gromacs" >> $NAME.pbs
-		echo " " >> $NAME.pbs
+	echo "module load gromacs" >> $NAME.pbs
+	echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
+	echo " " >> $NAME.pbs
 
-		#NOTE: NOT COMPLETE YET!	
-		#echo "grompp -f $MDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o TRAJ/traj -maxwarn 1" >> $NAME.pbs
-		#echo "cd $INITWD/$dir/TRAJ" >> $NAME.pbs
-		#echo "mdrun -nt 1 -v -deffnm traj >& qsub_mdrun.log" >> $NAME.pbs
+	echo "if ! [[ -e $NAME ]]; then" >> $NAME.pbs
+	echo "	mkdir $NAME" >> $NAME.pbs 
+	echo "fi" >> $NAME.pbs
 
-		# SUBMIT THE SCRIPT
-		if [ $READY ]; then
-			qsub $NAME.pbs
-		fi
+	#NOTE: NOT COMPLETE YET!	
+	echo "grompp -f $MDP -p $TOP -c $GRO -t $CPT -o $NAME/md_$NAME $WARN" >> $NAME.pbs
+	echo "cd $NAME" >> $NAME.pbs
+	if [ $QUEUE = "cm_serial" ]; then
+		echo "mdrun -nt 1 -v -deffnm md_$NAME >& qsub_mdrun.log" >> $NAME.pbs
+	else 
+		echo "mdrun -v -deffnm md_$NAME >& qsub_mdrun.log" >> $NAME.pbs
+	fi
+
+	# SUBMIT THE SCRIPT
+	if [ $READY ]; then
+		qsub $NAME.pbs
 	fi
 fi

@@ -86,9 +86,6 @@ fi
 shift $(( OPTIND - 1 ))
 
 INITWD=$(pwd)
-MDP=$INITWD/$MDP
-TOP=$INITWD/$TOP
-TIMEMDP=$INITWD/$TIMEMDP
 MPISUFFIX=
 if [ $P_THREAD -gt 1 ]; then
 	MPISUFFIX="_mpi"
@@ -139,7 +136,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 		echo "ERROR: Catamount cluster does not have allow for threading in multi-tenancy serial mode, do not use -P option."
 	else
 		for dir in $@; do
-			cd $INITWD/$dir
+			cd $dir
 			FULL=$(ls INIT | grep "\.cpt$" | head -n 1)
 			echo "FULL: " $FULL
 			BASE=${FULL//.cpt/}
@@ -152,26 +149,31 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 			#echo "#PBS -l walltime=01:00:00" >> temp_submit.pbs
 			echo "#PBS -j oe" >> temp_submit.pbs
 			
-			echo "cd $INITWD/$dir" >> temp_submit.pbs
+			echo 'cd $PBS_O_WORKDIR' >> temp_submit.pbs
 			echo "module load gromacs" >> temp_submit.pbs
 			echo " " >> temp_submit.pbs
 		
 			echo "for (( num=1 ; num <= $N ; num++)) ; do" >> temp_submit.pbs
-			echo "grompp -f $MDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o TRAJ/traj -maxwarn 1" >> temp_submit.pbs
-			echo "cd $INITWD/$dir/TRAJ" >> temp_submit.pbs
-			echo "mdrun -nt 1 -v -deffnm traj >& qsub_mdrun.log" >> temp_submit.pbs
+			# Run the trajectory for an arbitrary time
+			echo '	cd $PBS_O_WORKDIR' >> temp_submit.pbs
+			echo "	grompp -f $MDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o TRAJ/traj -maxwarn 1" >> temp_submit.pbs
+			echo "	cd TRAJ" >> temp_submit.pbs
+			echo "	mdrun -nt 1 -v -deffnm traj >& qsub_mdrun.log" >> temp_submit.pbs
 	
+			# Run the mini-spacer for an arbitrary time to make sure we continue to sample the equilibrium distribution of initial configs
 			echo " " >> temp_submit.pbs
-			echo "cd $INITWD/$dir" >> temp_submit.pbs
-			echo "grompp -f $TIMEMDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o INIT/$BASE -maxwarn 1" >> temp_submit.pbs
-			echo "cd $INITWD/$dir/INIT" >> temp_submit.pbs
-			echo "mdrun -nt 1 -v -deffnm $BASE >& qsub_mdrun.log" >> temp_submit.pbs
+			echo '	cd $PBS_O_WORKDIR' >> temp_submit.pbs
+			echo "	grompp -f $TIMEMDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o INIT/$BASE -maxwarn 1" >> temp_submit.pbs
+			echo "	cd INIT" >> temp_submit.pbs
+			echo "	mdrun -nt 1 -v -deffnm $BASE >& qsub_mdrun.log" >> temp_submit.pbs
 			echo "done" >> temp_submit.pbs
 		# SUBMIT THE SCRIPT
 			
 			if [ $READY ]; then
 				qsub temp_submit.pbs
 			fi
+
+			cd -
 		done
 	fi
 fi

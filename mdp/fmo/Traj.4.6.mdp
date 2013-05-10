@@ -1,14 +1,14 @@
 title		= TMV
 ; Run parameters
 integrator	= md
-dt		= 0.0005		; .5 fs
-nsteps		= 1000000		; total .5 ns
+dt		= 0.0005		; .5 fs !
+nsteps		= 1000		; total 500 fs
 ; Outputs every 10 fs
-nstxout		= 100000		; collect positions
-nstvout		= 100000 ; collect velocities
-nstxtcout	= 100000 ; compressed trajectory
-nstenergy	= 100000
-nstlog		= 10000
+nstxout		= 1000	 	; collect positions
+nstvout		= 1000 ; collect velocities
+nstxtcout	= 1000 ; compressed trajectory
+nstenergy	= 1000
+nstlog		= 1000
 ; Bond stuff
 continuation 	= yes
 constraint_algorithm = lincs
@@ -45,8 +45,8 @@ DispCorr	= EnerPres	; correct for vdw cutoff
 ; Generate velocites is on at 300 K.
 gen_vel		= no
 free-energy	= yes
-init-lambda	= 0.0
-foreign-lambda 	= 1.0
+init-lambda-state= 1.0
+coul-lambdas 	= 1.0 0.0
 separate-dhdl-file = yes
-nstcalcenergy	= 10	; Save every .4 fs * 10 = 5 fs
-nstdhdl		= 10	; Save every .4 fs * 10 = 5 fs
+nstcalcenergy	= 10	; Save every .5 fs * 10 = 5 fs
+nstdhdl		= 10	; Save every .5 fs * 10 = 5 fs
