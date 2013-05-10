@@ -1,14 +1,14 @@
 title		= TMV
 ; Run parameters
 integrator	= md
-dt		= 0.0005		; .5 fs
-nsteps		= 1000000		; total .5 ns
+dt		= 0.002			; 2 fs !
+nsteps		= 47			; total 94 fs
 ; Outputs every 10 fs
-nstxout		= 100000		; collect positions
-nstvout		= 100000 ; collect velocities
-nstxtcout	= 100000 ; compressed trajectory
-nstenergy	= 100000
-nstlog		= 10000
+nstxout		= 1000		; collect positions
+nstvout		= 1000 		; collect velocities
+nstxtcout	= 1000 		; compressed trajectory
+nstenergy	= 1000
+nstlog		= 1000
 ; Bond stuff
 continuation 	= yes
 constraint_algorithm = lincs
@@ -17,10 +17,10 @@ lincs_iter	= 1
 lincs_order	= 4
 ; Neighbor stuff
 ns_type		= grid
-nstlist		= 5		; output list every 10 fs
+nstlist		= 5   		; output list every 10 fs
 rlist		= 1.0
 rcoulomb	= 1.0		; 10 angstrom coulomb cutoff
-rvdw		= 1.0		; 14 angstrom Van Der Waals cutoff
+rvdw		= 1.0		; 10 angstrom Van Der Waals cutoff
 ; Electrostatics
 coulombtype	= PME
 pme_order	= 4
@@ -44,9 +44,3 @@ pbc 		= xyz
 DispCorr	= EnerPres	; correct for vdw cutoff
 ; Generate velocites is on at 300 K.
 gen_vel		= no
-free-energy	= yes
-init-lambda	= 0.0
-foreign-lambda 	= 1.0
-separate-dhdl-file = yes
-nstcalcenergy	= 10	; Save every .4 fs * 10 = 5 fs
-nstdhdl		= 10	; Save every .4 fs * 10 = 5 fs
