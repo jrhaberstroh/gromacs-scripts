@@ -45,8 +45,8 @@ DispCorr	= EnerPres	; correct for vdw cutoff
 ; Generate velocites is on at 300 K.
 gen_vel		= no
 free-energy	= yes
-init-lambda-state= 1.0
-coul-lambdas 	= 1.0 0.0
+init-lambda-state= 1		; Use coul-lambdas[0] as the desired state
+coul-lambdas 	= 0.0 1.0
 separate-dhdl-file = yes
 nstcalcenergy	= 10	; Save every .5 fs * 10 = 5 fs
 nstdhdl		= 10	; Save every .5 fs * 10 = 5 fs

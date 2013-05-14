@@ -1,13 +1,13 @@
 title		= FMO with BChlA Equilibration 2: NPT
 ; Run parameters
 integrator	= md		; leap-frog integrator
-nsteps		= 50000		; 2 * 50000 = 100 ps
+nsteps		= 100000	; 2 * 100000 = 200 ps
 dt		= 0.002		; 2 fs
 ; Output control
-nstxout		= 100		; save coordinates every 0.2 ps
-nstvout		= 100		; save velocities every 0.2 ps
-nstenergy	= 100		; save energies every 0.2 ps
-nstlog		= 100		; update log file every 0.2 ps
+nstxout		= 1000		; save coordinates every 0.2 ps
+nstvout		= 1000		; save velocities every 0.2 ps
+nstenergy	= 1000		; save energies every 0.2 ps
+nstlog		= 1000		; update log file every 0.2 ps
 ; Bond stuff
 continuation 	= yes
 constraint_algorithm = lincs
@@ -43,3 +43,9 @@ pbc 		= xyz
 DispCorr	= EnerPres	; correct for vdw cutoff
 ; Generate velocites is on at 300 K.
 gen_vel		= no
+
+; FREE ENERGY -------------------------------------------------
+free-energy	= yes
+init-lambda-state= 1		; Use zero-based index 1 from XXX-lambdas (i.e. state B)
+coul-lambdas	= 0.0 1.0
+nstdhdl 	= 0

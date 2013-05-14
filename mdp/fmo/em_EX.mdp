@@ -10,3 +10,9 @@ coulombtype	= PME
 rcoulomb	= 1.0
 rvdw		= 1.0
 pbc		= xyz
+
+free-energy	= yes
+init-lambda-state= 1		; Use zero-based index 1 from XXX-lambdas (i.e. state B)
+coul-lambdas	= 0.0 1.0
+
+nstdhdl 	= 0
