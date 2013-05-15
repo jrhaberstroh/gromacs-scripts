@@ -156,9 +156,9 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 			echo "for (( num=1 ; num <= $N ; num++)) ; do" >> temp_submit.pbs
 			# Run the trajectory for an arbitrary time
 			echo '	cd $PBS_O_WORKDIR' >> temp_submit.pbs
-			echo "	grompp -f $MDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o TRAJ/traj -maxwarn 1" >> temp_submit.pbs
+			echo "	grompp -f $MDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o TRAJ/traj"'$num'" -maxwarn 1" >> temp_submit.pbs
 			echo "	cd TRAJ" >> temp_submit.pbs
-			echo "	mdrun -nt 1 -v -deffnm traj >& qsub_mdrun.log" >> temp_submit.pbs
+			echo "	mdrun -nt 1 -v -deffnm traj"'$num'" >& qsub_mdrun.log" >> temp_submit.pbs
 	
 			# Run the mini-spacer for an arbitrary time to make sure we continue to sample the equilibrium distribution of initial configs
 			echo " " >> temp_submit.pbs

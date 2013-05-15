@@ -1,11 +1,13 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 import shlex
 import numpy as np
 import argparse
+import cPickle
 
 parser = argparse.ArgumentParser(description='Average over many .xvg energy trajectory files to get the average E(t) and S(t).')
-parser.add_argument('--files', dest='file_list', nargs='+', type=str, help='a collection of all of the files to be averaged over')
-parser.add_argument('-n', dest='total_time', type=int, default=0, help='the total number of time steps to average over. Overwritten by the number of time steps in the first file opened if this is smaller.')
+parser.add_argument('--files', dest='file_list', nargs='+', type=str, help='A collection of all of the files to be averaged over')
+parser.add_argument('-n', dest='total_time', type=int, default=0, help='The total number of time steps to average over. Overwritten by the number of time steps in the first file opened if this is smaller.')
+parser.add_argument('-pkl', dest='pickle_name', type=str, default='', help='The name of the pickle file to send the output into.')
 
 args = parser.parse_args()
 istimelimit = 0;
@@ -42,5 +44,9 @@ for fname in args.file_list:
 
 print [e_t / file_count, time]
 
-
+if (args.pickle_name != ""):
+	print "Pickle requested!"
+	pkl_out = open(args.pickle_name, 'w')
+	cPickle.dump([time, e_t/file_count], pkl_out)
+	pkl_out.close()
 

@@ -1,14 +1,13 @@
-title		= TMV
+title		= FMO with BChlA Equilibration 2: NPT
 ; Run parameters
-integrator	= md
-dt		= 0.0005		; .5 fs !
-nsteps		= 1000		; total 500 fs
-; Outputs every 10 fs
-nstxout		= 1000	 	; collect positions
-nstvout		= 1000 ; collect velocities
-nstxtcout	= 1000 ; compressed trajectory
-nstenergy	= 1000
-nstlog		= 1000
+integrator	= md		; leap-frog integrator
+nsteps		= 100000	; 2 * 100000 = 200 ps
+dt		= 0.002		; 2 fs
+; Output control
+nstxout		= 1000		; save coordinates every 0.2 ps
+nstvout		= 1000		; save velocities every 0.2 ps
+nstenergy	= 1000		; save energies every 0.2 ps
+nstlog		= 1000		; update log file every 0.2 ps
 ; Bond stuff
 continuation 	= yes
 constraint_algorithm = lincs
@@ -33,7 +32,7 @@ tc-grps		= protein Non-Protein 	; Must span all atoms in simulation
 tau_t		= 0.1	0.1
 ref_t		= 300	300
 ; Pressure coupling is on
-Pcoupl		= Parrinello-Rahman
+Pcoupl		= Berendsen
 pcoupltype	= isotropic
 tau_p		= 2.0
 ref_p		= 1.0
@@ -44,9 +43,9 @@ pbc 		= xyz
 DispCorr	= EnerPres	; correct for vdw cutoff
 ; Generate velocites is on at 300 K.
 gen_vel		= no
+
+; FREE ENERGY -------------------------------------------------
 free-energy	= yes
-init-lambda-state= 1		; Use coul-lambdas[0] as the desired state
-coul-lambdas 	= 0.0 1.0
-separate-dhdl-file = yes
-nstcalcenergy	= 10	; Save every .5 fs * 10 = 5 fs
-nstdhdl		= 10	; Save every .5 fs * 10 = 5 fs
+init-lambda-state= 1		; Use zero-based index 1 from XXX-lambdas (i.e. state B)
+coul-lambdas	= 0.0 1.0
+nstdhdl 	= 0
