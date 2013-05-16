@@ -150,22 +150,32 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 			echo "#PBS -j oe" >> temp_submit.pbs
 			
 			echo 'cd $PBS_O_WORKDIR' >> temp_submit.pbs
-			echo "module load gromacs" >> temp_submit.pbs
+			echo "module load gromacs/4.6" >> temp_submit.pbs
+			echo "export GMX_MAXBACKUP=-1" >> temp_submit.pbs
 			echo " " >> temp_submit.pbs
-		
+
+
+			# Run the mini-spacer for an arbitrary time to make sure we continue to sample the equilibrium distribution of initial configs
+			echo " " >> temp_submit.pbs
+			echo 'cd $PBS_O_WORKDIR' >> temp_submit.pbs
+			echo "grompp -f $TIMEMDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o INIT/$BASE.1 -maxwarn 1" >> temp_submit.pbs
+			echo "cd INIT" >> temp_submit.pbs
+			echo "mdrun -nt 1 -v -deffnm $BASE.1 >& qsub_mdrun.log" >> temp_submit.pbs
+
+
 			echo "for (( num=1 ; num <= $N ; num++)) ; do" >> temp_submit.pbs
 			# Run the trajectory for an arbitrary time
 			echo '	cd $PBS_O_WORKDIR' >> temp_submit.pbs
-			echo "	grompp -f $MDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o TRAJ/traj"'$num'" -maxwarn 1" >> temp_submit.pbs
+			echo "	grompp -f $MDP -p $TOP -c INIT/$BASE."'$num'".gro -t INIT/$BASE."'$num'".cpt -o TRAJ/traj"'$num'" -maxwarn 1" >> temp_submit.pbs
 			echo "	cd TRAJ" >> temp_submit.pbs
 			echo "	mdrun -nt 1 -v -deffnm traj"'$num'" >& qsub_mdrun.log" >> temp_submit.pbs
 	
 			# Run the mini-spacer for an arbitrary time to make sure we continue to sample the equilibrium distribution of initial configs
 			echo " " >> temp_submit.pbs
 			echo '	cd $PBS_O_WORKDIR' >> temp_submit.pbs
-			echo "	grompp -f $TIMEMDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o INIT/$BASE -maxwarn 1" >> temp_submit.pbs
+			echo "	grompp -f $TIMEMDP -p $TOP -c INIT/$BASE."'$num'".gro -t INIT/$BASE."'$num'".cpt -o INIT/$BASE."'$(($num+1))'" -maxwarn 1" >> temp_submit.pbs
 			echo "	cd INIT" >> temp_submit.pbs
-			echo "	mdrun -nt 1 -v -deffnm $BASE >& qsub_mdrun.log" >> temp_submit.pbs
+			echo "	mdrun -nt 1 -v -deffnm $BASE."'$(($num+1))'" >& qsub_mdrun.log" >> temp_submit.pbs
 			echo "done" >> temp_submit.pbs
 		# SUBMIT THE SCRIPT
 			
