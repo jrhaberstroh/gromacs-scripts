@@ -2,7 +2,7 @@ title		= TMV
 ; Run parameters
 integrator	= md
 dt		= 0.0005		; 2 fs !
-nsteps		= 1000000		; total .5 ns
+nsteps		= 20000000		; total 10 ns
 ; Outputs every 10 fs
 nstxout		= 4000	 	; collect positions
 nstvout		= 100000 ; collect velocities
