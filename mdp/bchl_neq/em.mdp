@@ -1,5 +1,5 @@
 ; LINES STARTING WITH ';' ARE COMMENTS
-title		= Minimization	; Title of run
+;title		= Minimization	; Title of run
 
 ; Parameters describing what to do, when to stop and what to save
 integrator	= steep		; Algorithm (steep = steepest descent minimization)

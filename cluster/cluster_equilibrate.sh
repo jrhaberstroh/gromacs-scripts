@@ -172,7 +172,7 @@ if [ $CLUSTER = "HOPPER" ]; then
 	if ! [[ -z $EMMDP ]]; then
 		echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
 		echo "mkdir $NAME/1ENERGYMIN/" >> $NAME.pbs
-		echo "aprun -n 1 grompp_mpi_sp -f $EMMDP -c $GRO -p $TOP -o $NAME/1ENERGYMIN/1ENERGYMIN $WARN" >> $NAME.pbs
+		echo "aprun -n 1 grompp_sp -f $EMMDP -c $GRO -p $TOP -o $NAME/1ENERGYMIN/1ENERGYMIN $WARN" >> $NAME.pbs
 		echo "cd $NAME/1ENERGYMIN/" >> $NAME.pbs
 		echo "aprun -n $P_THREAD mdrun_mpi_sp -v -deffnm 1ENERGYMIN" >> $NAME.pbs
 		echo "EMGRO='$NAME/1ENERGYMIN/1ENERGYMIN.gro'" >> $NAME.pbs
@@ -184,7 +184,7 @@ if [ $CLUSTER = "HOPPER" ]; then
 	if ! [[ -z $VTMDP ]]; then
 		echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
 		echo "mkdir $NAME/2TEMPEQ/" >> $NAME.pbs
-		echo "aprun -n 1 grompp_mpi_sp -f $VTMDP -c "'$EMGRO'" -p $TOP -o $NAME/2TEMPEQ/2TEMPEQ $WARN" >> $NAME.pbs
+		echo "aprun -n 1 grompp_sp -f $VTMDP -c "'$EMGRO'" -p $TOP -o $NAME/2TEMPEQ/2TEMPEQ $WARN" >> $NAME.pbs
 		echo "cd $NAME/2TEMPEQ/" >> $NAME.pbs
 		echo "aprun -n $P_THREAD mdrun_mpi_sp -v -deffnm 2TEMPEQ" >> $NAME.pbs
 		echo "VTGRO='$NAME/2TEMPEQ/2TEMPEQ.gro'" >> $NAME.pbs
