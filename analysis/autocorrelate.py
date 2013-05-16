@@ -13,7 +13,7 @@ parser.add_argument('-tf', dest='end_time', type=float, default=0, help='The tim
 parser.add_argument('-p', dest='lenplot', type=int, default=0, help='The number of data points to plot. Should be passed with --pklplot to allow pklplot to plot anything')
 parser.add_argument('-pkl', dest='pickle_name', type=str, default='', help='Add this argument to pickle the correlation function. Include the extension.')
 parser.add_argument('--pklplot', dest='pickle_in', type=str, default='', help='For plotting old pickles. Skips the main functions, and just plots the pickle.')
-
+parser.add_argument('-2', dest='half', action='store_const', const=1, default=0, help='Splits the data in half and plots the two halves autocorrelated separately. For error checking.')
 
 args = parser.parse_args()
 if (args.pickle_in != ''):
@@ -47,9 +47,25 @@ with open(args.fname, 'r') as f:
 	e_t = np.array(e_t)
 	time= np.array(time)
 
-de_t = e_t - np.mean(e_t)
+if half:
+	print "Computing Halves"
+	half1 = np.array(e_t[0:len(e_t)/2])
+	half2 = np.array(e_t[len(e_t)/2:len(e_t)])
+	dhalf1= half1 - np.mean(half1)
+	dhalf2= half2 - np.mean(half2)
+	crlf1 = np.correlate(dhalf1, dhalf1, mode='full')[len(dhalf1)-1:]
+	crlf2 = np.correlate(dhalf2, dhalf2, mode='full')[len(dhalf2)-1:]
+	if (args.pickle_name != ""):
+		print "Pickle requested! Pickling the halves!"
+		pkl_out = open(args.pickle_name + ".1", 'w')
+		cPickle.dump(crlf1, pkl_out)
+		pkl_out.close()
+		pkl_out = open(args.pickle_name + ".2", 'w')
+		cPickle.dump(crlf2, pkl_out)
+		pkl_out.close()
 
 print "Computing Correlation..."
+de_t = e_t - np.mean(e_t)
 crlf=np.correlate(de_t, de_t,mode='full')[len(de_t)-1:]
 
 # Real autocorrelation
