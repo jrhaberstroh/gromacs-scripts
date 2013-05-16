@@ -25,7 +25,7 @@ OPTIONS:
    -W	   Value for maxwarn (default = 0)
    -w      Walltime override
    -1 [+]  Running on Hopper@NERSC. 24 cores per node, single tenancy, MPI.
-   -2 [+]  Running on Catamount@LBL. 4 cores per node, multi-thread and multi-tenancy. MPI will activate if more than 4 cores are requested.
+   -2 [+]  Running on Catamount@LBL. 4 cores per node, multi-thread and multi-tenancy, but no MPI.
    -q      Manual override for queue to submit to.
    -n 	   Number of cores to use (default = no -nt option)
    -v      Verbose (default = false)
