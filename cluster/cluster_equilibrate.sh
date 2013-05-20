@@ -25,7 +25,7 @@ OPTIONS:
    -W	   Value for maxwarn (default = 0)
    -w      Walltime override
    -1 [+]  Running on Hopper@NERSC. 24 cores per node, single tenancy, MPI.
-   -2 [+]  Running on Catamount@LBL. 4 cores per node, multi-thread and multi-tenancy, but no MPI.
+   -2 [+]  Running on Catamount@LBL. 4 cores per node, MPI and multi-tenancy.
    -q      Manual override for queue to submit to.
    -n 	   Number of cores to use (default = no -nt option)
    -v      Verbose (default = false)
@@ -49,7 +49,7 @@ P_THREAD=
 QUEUE=
 VERBOSE=
 CLUSTER=
-while getopts “h:N:n:c:p:E:T:P:o:A:W:w:q:vt:12” OPTION
+while getopts “h:N:c:p:t:E:T:P:W:w:12q:n:v” OPTION
 do
      case $OPTION in
          h)
@@ -58,9 +58,6 @@ do
              ;;
 	 N)
              NAME=$OPTARG
-             ;;
-         n)
-             P_THREAD=$OPTARG
              ;;
          c)
              GRO=$OPTARG
@@ -80,11 +77,11 @@ do
 	 P)
 	     PTMDP=$OPTARG
 	     ;;
-	 o)
-	     OUT=$OPTARG
-	     ;;
 	 W)
 	     WARN=$OPTARG
+	     ;;
+	 w)
+	     WALL=$OPTARG
 	     ;;
 	 1)
 	     CLUSTER="HOPPER"
@@ -92,10 +89,14 @@ do
 	 2)
 	     CLUSTER="CATAMOUNT"
  	     ;;
-	 w)
-	     WALL=$OPTARG
+	 q)
+	     QUEUE=$OPTARG
+	     ;;
+	 n)
+	     P_THREAD=$OPTARG
 	     ;;
          ?)
+             echo "You passed a stupid argument: $OPTARG"
              usage
              exit
              ;;
@@ -212,7 +213,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	if [ $QUEUE = "cm_serial" ]; then
 		echo "#PBS -l nodes=1:ppn=1:cm_serial" >> $NAME.pbs
 	else 
-		echo "#PBS -l nodes=$P_THREAD:ppn=$P_THREAD:catamount" >> $NAME.pbs
+		echo "#PBS -l nodes=$(($P_THREAD / 4)):ppn=4:catamount" >> $NAME.pbs
 	fi
 	echo "#PBS -l walltime=$WALL" >> $NAME.pbs
 	echo "#PBS -j oe" >> $NAME.pbs
@@ -232,10 +233,11 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	else
 		echo "module load gromacs/4.6" >> $NAME.pbs
 	fi
+	echo " " >> $NAME.pbs
 
-	echo "module load gromacs" >> $NAME.pbs
+	if ! [[ -z $EMMDP ]]; then
 		echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
-		echo "mkdir $NAME/1ENERGYMIN/" >> $NAME.pbs
+		echo "mkdir -p $NAME/1ENERGYMIN/" >> $NAME.pbs
 		echo "$MPICALL_GROMP grompp$MPI -f $EMMDP -c $GRO -p $TOP -o $NAME/1ENERGYMIN/1ENERGYMIN $WARN" >> $NAME.pbs
 		echo "cd $NAME/1ENERGYMIN/" >> $NAME.pbs
 		echo "$MPICALL_MDRUN mdrun$MPI -v -deffnm 1ENERGYMIN" >> $NAME.pbs
@@ -247,7 +249,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 
 	if ! [[ -z $VTMDP ]]; then
 		echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
-		echo "mkdir $NAME/2TEMPEQ/" >> $NAME.pbs
+		echo "mkdir -p $NAME/2TEMPEQ/" >> $NAME.pbs
 		echo "$MPICALL_GROMP grompp$MPI -f $VTMDP -c "'$EMGRO'" -p $TOP -o $NAME/2TEMPEQ/2TEMPEQ $WARN" >> $NAME.pbs
 		echo "cd $NAME/2TEMPEQ/" >> $NAME.pbs
 		echo "$MPICALL_MDRUN mdrun$MPI -v -deffnm 2TEMPEQ" >> $NAME.pbs
@@ -261,8 +263,9 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	
 	if ! [[ -z $PTMDP ]]; then	
 		echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
-		echo "mkdir $NAME/3PRESEQ/" >> $NAME.pbs
+		echo "mkdir -p $NAME/3PRESEQ/" >> $NAME.pbs
 		echo "$MPICALL_GROMP grompp$MPI -f $PTMDP -c "'$VTGRO'" -t "'$VTCPT'" -p $TOP -o $NAME/3PRESEQ/3PRESEQ $WARN" >> $NAME.pbs
 		echo "cd $NAME/3PRESEQ/" >> $NAME.pbs
 		echo "$MPICALL_MDRUN mdrun$MPI -v -deffnm 3PRESEQ" >> $NAME.pbs
 	fi
+fi
