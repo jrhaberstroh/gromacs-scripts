@@ -182,14 +182,14 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	echo "	mkdir TRAJ" >> $NAME-tprep.pbs
 	echo "	cd INIT" >> $NAME-tprep.pbs
 	echo '	if [[ -z $PREVGRO ]]' >> $NAME-tprep.pbs
-	echo "		then $GROMPP $WARN -f $FOLDMDP -p $TOP -c $GRO -t $CPT -o "'init$CTR.tpr' >> $NAME-tprep.pbs
+	echo "		then $GROMPP $WARN -f $FOLDMDP -p $TOP -c $GRO -t $CPT -o $NAME"'$CTR.tpr' >> $NAME-tprep.pbs
 	echo "	else" >> $NAME-tprep.pbs
-	echo "		$GROMPP $WARN -f $FOLDMDP -p $TOP "'-c $PREVGRO -t $PREVCPT -o init$CTR.tpr' >> $NAME-tprep.pbs
+	echo "		$GROMPP $WARN -f $FOLDMDP -p $TOP "'-c $PREVGRO -t $PREVCPT -o '"$NAME"'$CTR.tpr' >> $NAME-tprep.pbs
 	echo "	fi" >> $NAME-tprep.pbs
-	echo "	$MDRUN -deffnm "'init$CTR.tpr' >> $NAME-tprep.pbs
-	echo "	$MDRUN -deffnm "'init$CTR.tpr' >> $NAME-tprep.pbs
-	echo '	PREVGRO=$(pwd)/init$CTR.gro' >> $NAME-tprep.pbs
-	echo '	PREVCPT=$(pwd)/init$CTR.cpt' >> $NAME-tprep.pbs
+	echo "	$MDRUN -deffnm $NAME"'$CTR.tpr' >> $NAME-tprep.pbs
+	echo "	$MDRUN -deffnm $NAME"'$CTR.tpr' >> $NAME-tprep.pbs
+	echo '	PREVGRO=$(pwd)/'"$NAME"'$CTR.gro' >> $NAME-tprep.pbs
+	echo '	PREVCPT=$(pwd)/'"$NAME"'$CTR.cpt' >> $NAME-tprep.pbs
 	echo "done" >> $NAME-tprep.pbs
 	
 	#Make a copy when done
@@ -214,6 +214,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	echo "#PBS -j oe" >> $NAME-traj.pbs
 
 	echo 'cd $PBS_O_WORKDIR' >> $NAME-traj.pbs
+	# Accesses the folder built by $NAME$CTR to match ARRAYID
 	echo "cd $NAME-traj/$NAME"'$PBS_ARRAYID' >> $NAME-traj.pbs
 	echo 'FULL=$(ls INIT | grep "\.cpt$" | head -n 1)' >> $NAME-traj.pbs
 	echo 'BASE=${FULL//.cpt/}' >> $NAME-traj.pbs
@@ -226,6 +227,8 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	# Run the mini-spacer for an arbitrary time to make sure we continue to sample the equilibrium distribution of initial configs
 	echo " " >> $NAME-traj.pbs
 	echo 'cd $PBS_O_WORKDIR' >> $NAME-traj.pbs
+	# Accesses the folder built by $NAME$CTR to match ARRAYID
+	echo "cd $NAME-traj/$NAME"'$PBS_ARRAYID' >> $NAME-traj.pbs
 	echo "$GROMPP -f $TIMEMDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o INIT/$BASE.1 -maxwarn 1" >> $NAME-traj.pbs
 	echo "cd INIT" >> $NAME-traj.pbs
 	echo "$MDRUN -nt 1 -v -deffnm $BASE.1 >& qsub_mdrun.log" >> $NAME-traj.pbs
@@ -234,6 +237,8 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	echo "for (( num=1 ; num <= $NTRAJ ; num++)) ; do" >> $NAME-traj.pbs
 	# Run the trajectory for an arbitrary time
 	echo '	cd $PBS_O_WORKDIR' >> $NAME-traj.pbs
+	# Accesses the folder built by $NAME$CTR to match ARRAYID
+	echo "	cd $NAME-traj/$NAME"'$PBS_ARRAYID' >> $NAME-traj.pbs
 	echo "	$GROMPP -f $MDP -p $TOP -c INIT/$BASE."'$num'".gro -t INIT/$BASE."'$num'".cpt -o TRAJ/traj"'$num'" -maxwarn 1" >> $NAME-traj.pbs
 	echo "	cd TRAJ" >> $NAME-traj.pbs
 	echo "	$MDRUN -nt 1 -v -deffnm traj"'$num'" >& qsub_mdrun.log" >> $NAME-traj.pbs
@@ -241,6 +246,8 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	# Run the mini-spacer for an arbitrary time to make sure we continue to sample the equilibrium distribution of initial configs
 	echo " " >> $NAME-traj.pbs
 	echo '	cd $PBS_O_WORKDIR' >> $NAME-traj.pbs
+	# Accesses the folder built by $NAME$CTR to match ARRAYID
+	echo "	cd $NAME-traj/$NAME"'$PBS_ARRAYID' >> $NAME-traj.pbs
 	echo "	$GROMPP -f $TIMEMDP -p $TOP -c INIT/$BASE."'$num'".gro -t INIT/$BASE."'$num'".cpt -o INIT/$BASE."'$(($num+1))'" -maxwarn 1" >> $NAME-traj.pbs
 	echo "	cd INIT" >> $NAME-traj.pbs
 	echo "	$MDRUN -nt 1 -v -deffnm $BASE."'$(($num+1))'" >& qsub_mdrun.log" >> $NAME-traj.pbs
