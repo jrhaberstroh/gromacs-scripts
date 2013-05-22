@@ -228,8 +228,8 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	elif [[ $P_THREAD -gt 4 ]]; then
 		echo "module load gromacs/4.6-mpi" >> $NAME.pbs
 		MPI='_mpi'
-		MPICALL_GROMP='aprun -n 1'
-		MPICALL_MDRUN="aprun -n $P_THREAD"
+		MPICALL_GROMP='mpirun -n 1'
+		MPICALL_MDRUN="mpirun -n $P_THREAD"
 	else
 		echo "module load gromacs/4.6" >> $NAME.pbs
 	fi
