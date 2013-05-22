@@ -25,7 +25,7 @@ OPTIONS:
    -W	   Value for maxwarn (default = 0)
    -w      Walltime override
    -1 [+]  Running on Hopper@NERSC. 24 cores per node, single tenancy, MPI.
-   -2 [+]  Running on Catamount@LBL. 4 cores per node, multi-thread and multi-tenancy, but no MPI.
+   -2 [+]  Running on Catamount@LBL. 4 cores per node, MPI and multi-tenancy.
    -q      Manual override for queue to submit to.
    -n 	   Number of cores to use (default = no -nt option)
    -v      Verbose (default = false)
@@ -49,7 +49,7 @@ P_THREAD=
 QUEUE=
 VERBOSE=
 CLUSTER=
-while getopts “h:N:n:c:p:E:T:P:o:A:W:w:q:vt:12” OPTION
+while getopts “h:N:c:p:t:E:T:P:W:w:12q:n:v” OPTION
 do
      case $OPTION in
          h)
@@ -58,9 +58,6 @@ do
              ;;
 	 N)
              NAME=$OPTARG
-             ;;
-         n)
-             P_THREAD=$OPTARG
              ;;
          c)
              GRO=$OPTARG
@@ -80,18 +77,12 @@ do
 	 P)
 	     PTMDP=$OPTARG
 	     ;;
-	 o)
-	     OUT=$OPTARG
-	     ;;
-	 A)
-	     ABS=1
-	     ;;
 	 W)
 	     WARN=$OPTARG
 	     ;;
-         v)
-             VERBOSE=1
-             ;;
+	 w)
+	     WALL=$OPTARG
+	     ;;
 	 1)
 	     CLUSTER="HOPPER"
 	     ;;
@@ -100,21 +91,22 @@ do
  	     ;;
 	 q)
 	     QUEUE=$OPTARG
- 	     ;;
-	 w)
-	     WALL=$OPTARG
+	     ;;
+	 n)
+	     P_THREAD=$OPTARG
 	     ;;
          ?)
+             echo "You passed a stupid argument: $OPTARG"
              usage
              exit
              ;;
      esac
 done
 
-if [[ -z $NAME ]] || [[ -z $TOP ]] || [[ -z $GRO ]]
-then
-     usage
-     exit 1
+if [[ -z $NAME ]] || [[ -z $TOP ]] || [[ -z $GRO ]]; then
+    	echo "ERROR: Missing either name, top, or gro"
+     	usage
+     	exit 1
 fi
 
 if [ $CLUSTER = "HOPPER" ] && [[ -z $P_THREAD ]]; then
@@ -154,56 +146,56 @@ if [ $CLUSTER = "HOPPER" ]; then
 	fi
 
 	# GENERATE THE SCRIPT
-	echo "#PBS -N $NAME-gmx-eq" > eq_$NAME.pbs
-	echo "#PBS -l mppwidth=$P_THREAD" >> eq_$NAME.pbs
-	echo "#PBS -l walltime=$WALL" >> eq_$NAME.pbs
-	echo "#PBS -j oe" >> eq_$NAME.pbs    # Join stdout and error
-	echo "#PBS -q $QUEUE" >> eq_$NAME.pbs
-	echo "#PBS -V" >> eq_$NAME.pbs
+	echo "#PBS -N $NAME-gmx" > $NAME.pbs
+	echo "#PBS -l mppwidth=$P_THREAD" >> $NAME.pbs
+	echo "#PBS -l walltime=$WALL" >> $NAME.pbs
+	echo "#PBS -j oe" >> $NAME.pbs    # Join stdout and error
+	echo "#PBS -q $QUEUE" >> $NAME.pbs
+	echo "#PBS -V" >> $NAME.pbs
 
-	echo "module load gromacs" >> eq_$NAME.pbs
-	echo 'if [[ -e $PBS_O_WORKDIR'"/$NAME ]]; then" >> eq_$NAME.pbs
-	echo "	rm -r "'$PBS_O_WORKDIR'"/$NAME/*" >> eq_$NAME.pbs
-	echo "else" >> eq_$NAME.pbs
-	echo "	mkdir "'$PBS_O_WORKDIR'"/$NAME" >> eq_$NAME.pbs
-	echo "fi" >> eq_$NAME.pbs
-	echo " " >> eq_$NAME.pbs
+	echo "module load gromacs/4.6.1-sp" >> $NAME.pbs
+	echo 'if [[ -e $PBS_O_WORKDIR'"/$NAME ]]; then" >> $NAME.pbs
+	echo "	rm -r "'$PBS_O_WORKDIR'"/$NAME/*" >> $NAME.pbs
+	echo "else" >> $NAME.pbs
+	echo "	mkdir "'$PBS_O_WORKDIR'"/$NAME" >> $NAME.pbs
+	echo "fi" >> $NAME.pbs
+	echo " " >> $NAME.pbs
 
 	if ! [[ -z $EMMDP ]]; then
-		echo 'cd $PBS_O_WORKDIR' >> eq_$NAME.pbs
-		echo "mkdir $NAME/1ENERGYMIN/" >> eq_$NAME.pbs
-		echo "aprun -n 1 grompp_mpi -f $EMMDP -c $GRO -p $TOP -o $NAME/1ENERGYMIN/1ENERGYMIN $WARN" >> eq_$NAME.pbs
-		echo "cd $NAME/1ENERGYMIN/" >> eq_$NAME.pbs
-		echo "aprun -n $P_THREAD mdrun_mpi -v -deffnm 1ENERGYMIN" >> eq_$NAME.pbs
-		echo "EMGRO='$NAME/1ENERGYMIN/1ENERGYMIN.gro'" >> eq_$NAME.pbs
-		echo " " >> eq_$NAME.pbs
+		echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
+		echo "mkdir $NAME/1ENERGYMIN/" >> $NAME.pbs
+		echo "aprun -n 1 grompp_sp -f $EMMDP -c $GRO -p $TOP -o $NAME/1ENERGYMIN/1ENERGYMIN $WARN" >> $NAME.pbs
+		echo "cd $NAME/1ENERGYMIN/" >> $NAME.pbs
+		echo "aprun -n $P_THREAD mdrun_mpi_sp -v -deffnm 1ENERGYMIN" >> $NAME.pbs
+		echo "EMGRO='$NAME/1ENERGYMIN/1ENERGYMIN.gro'" >> $NAME.pbs
+		echo " " >> $NAME.pbs
 	else
 		echo "EMGRO=$GRO"
 	fi
 
 	if ! [[ -z $VTMDP ]]; then
-		echo 'cd $PBS_O_WORKDIR' >> eq_$NAME.pbs
-		echo "mkdir $NAME/2TEMPEQ/" >> eq_$NAME.pbs
-		echo "aprun -n 1 grompp_mpi -f $VTMDP -c "'$EMGRO'" -p $TOP -o $NAME/2TEMPEQ/2TEMPEQ $WARN" >> eq_$NAME.pbs
-		echo "cd $NAME/2TEMPEQ/" >> eq_$NAME.pbs
-		echo "aprun -n $P_THREAD mdrun_mpi -v -deffnm 2TEMPEQ" >> eq_$NAME.pbs
-		echo "VTGRO='$NAME/2TEMPEQ/2TEMPEQ.gro'" >> eq_$NAME.pbs
-		echo "VTCPT='$NAME/2TEMPEQ/2TEMPEQ.cpt'" >> eq_$NAME.pbs
-		echo " " >> eq_$NAME.pbs
+		echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
+		echo "mkdir $NAME/2TEMPEQ/" >> $NAME.pbs
+		echo "aprun -n 1 grompp_sp -f $VTMDP -c "'$EMGRO'" -p $TOP -o $NAME/2TEMPEQ/2TEMPEQ $WARN" >> $NAME.pbs
+		echo "cd $NAME/2TEMPEQ/" >> $NAME.pbs
+		echo "aprun -n $P_THREAD mdrun_mpi_sp -v -deffnm 2TEMPEQ" >> $NAME.pbs
+		echo "VTGRO='$NAME/2TEMPEQ/2TEMPEQ.gro'" >> $NAME.pbs
+		echo "VTCPT='$NAME/2TEMPEQ/2TEMPEQ.cpt'" >> $NAME.pbs
+		echo " " >> $NAME.pbs
 	else
 		echo "VTGRO=$GRO"
 		echo "VTCPT=$CPTOPT"
 	fi
 	
 	if ! [[ -z $PTMDP ]]; then	
-		echo 'cd $PBS_O_WORKDIR' >> eq_$NAME.pbs
-		echo "mkdir $NAME/3PRESEQ/" >> eq_$NAME.pbs
-		echo "aprun -n 1 grompp_mpi -f $PTMDP -c "'$VTGRO'" -t "'$VTCPT'" -p $TOP -o $NAME/3PRESEQ/3PRESEQ $WARN" >> eq_$NAME.pbs
-		echo "cd $NAME/3PRESEQ/" >> eq_$NAME.pbs
-		echo "aprun -n $P_THREAD mdrun_mpi -v -deffnm 3PRESEQ" >> eq_$NAME.pbs
+		echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
+		echo "mkdir $NAME/3PRESEQ/" >> $NAME.pbs
+		echo "aprun -n 1 grompp_mpi_sp -f $PTMDP -c "'$VTGRO'" -t "'$VTCPT'" -p $TOP -o $NAME/3PRESEQ/3PRESEQ $WARN" >> $NAME.pbs
+		echo "cd $NAME/3PRESEQ/" >> $NAME.pbs
+		echo "aprun -n $P_THREAD mdrun_mpi_sp -v -deffnm 3PRESEQ" >> $NAME.pbs
 	fi
-	#echo "PTGRO='$NAME/3PRESEQ/3PRESEQ.gro'" >> eq_$NAME.pbs
-	#echo "PTCPT='$NAME/3PRESEQ/3PRESEQ.cpt'" >> eq_$NAME.pbs
+	#echo "PTGRO='$NAME/3PRESEQ/3PRESEQ.gro'" >> $NAME.pbs
+	#echo "PTCPT='$NAME/3PRESEQ/3PRESEQ.cpt'" >> $NAME.pbs
 fi
 
 
@@ -216,57 +208,64 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	fi
 
 	# GENERATE THE SCRIPT
-	echo "#PBS -N $NAME-gmx-eq" > eq_$NAME.pbs
-	echo "#PBS -q $QUEUE" >> eq_$NAME.pbs
+	echo "#PBS -N $NAME-gmx" > $NAME.pbs
+	echo "#PBS -q $QUEUE" >> $NAME.pbs
 	if [ $QUEUE = "cm_serial" ]; then
-		echo "#PBS -l nodes=1:ppn=1:cm_serial" >> eq_$NAME.pbs
+		echo "#PBS -l nodes=1:ppn=1:cm_serial" >> $NAME.pbs
 	else 
-		echo "#PBS -l nodes=4:ppn=4:catamount" >> eq_$NAME.pbs
+		echo "#PBS -l nodes=$(($P_THREAD / 4)):ppn=4:catamount" >> $NAME.pbs
 	fi
-	echo "#PBS -l walltime=$WALL" >> eq_$NAME.pbs
-	echo "#PBS -j oe" >> eq_$NAME.pbs
-	echo "#PBS -V" >> eq_$NAME.pbs
+	echo "#PBS -l walltime=$WALL" >> $NAME.pbs
+	echo "#PBS -j oe" >> $NAME.pbs
+	echo "#PBS -V" >> $NAME.pbs
 
-	echo "module load gromacs" >> eq_$NAME.pbs
-
-	echo 'if [[ -e $PBS_O_WORKDIR'"/$NAME ]]; then" >> eq_$NAME.pbs
-	echo "	rm -r "'$PBS_O_WORKDIR'"/$NAME/*" >> eq_$NAME.pbs
-	echo "else" >> eq_$NAME.pbs
-	echo "	mkdir "'$PBS_O_WORKDIR'"/$NAME" >> eq_$NAME.pbs
-	echo "fi" >> eq_$NAME.pbs
-	echo " " >> eq_$NAME.pbs
+	MPICALL_GROMP=
+	MPICALL_MDRUN=
+	MPI=
+	if [ $QUEUE = "cm_serial" ]; then
+		echo "cm_serial queue requested, setting number of cores to 1."
+		echo "module load gromacs/4.6" >> $NAME.pbs
+	elif [[ $P_THREAD -gt 4 ]]; then
+		echo "module load gromacs/4.6-mpi" >> $NAME.pbs
+		MPI='_mpi'
+		MPICALL_GROMP='aprun -n 1'
+		MPICALL_MDRUN="aprun -n $P_THREAD"
+	else
+		echo "module load gromacs/4.6" >> $NAME.pbs
+	fi
+	echo " " >> $NAME.pbs
 
 	if ! [[ -z $EMMDP ]]; then
-		echo 'cd $PBS_O_WORKDIR' >> eq_$NAME.pbs
-		echo "mkdir $NAME/1ENERGYMIN/" >> eq_$NAME.pbs
-		echo "grompp -f $EMMDP -c $GRO -p $TOP -o $NAME/1ENERGYMIN/1ENERGYMIN $WARN" >> eq_$NAME.pbs
-		echo "cd $NAME/1ENERGYMIN/" >> eq_$NAME.pbs
-		echo "mdrun -v -deffnm 1ENERGYMIN" >> eq_$NAME.pbs
-		echo "EMGRO='$NAME/1ENERGYMIN/1ENERGYMIN.gro'" >> eq_$NAME.pbs
-		echo " " >> eq_$NAME.pbs
+		echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
+		echo "mkdir -p $NAME/1ENERGYMIN/" >> $NAME.pbs
+		echo "$MPICALL_GROMP grompp$MPI -f $EMMDP -c $GRO -p $TOP -o $NAME/1ENERGYMIN/1ENERGYMIN $WARN" >> $NAME.pbs
+		echo "cd $NAME/1ENERGYMIN/" >> $NAME.pbs
+		echo "$MPICALL_MDRUN mdrun$MPI -v -deffnm 1ENERGYMIN" >> $NAME.pbs
+		echo "EMGRO='$NAME/1ENERGYMIN/1ENERGYMIN.gro'" >> $NAME.pbs
+		echo " " >> $NAME.pbs
 	else
 		echo "EMGRO=$GRO"
 	fi
 
 	if ! [[ -z $VTMDP ]]; then
-		echo 'cd $PBS_O_WORKDIR' >> eq_$NAME.pbs
-		echo "mkdir $NAME/2TEMPEQ/" >> eq_$NAME.pbs
-		echo "grompp -f $VTMDP -c "'$EMGRO'" -p $TOP -o $NAME/2TEMPEQ/2TEMPEQ $WARN" >> eq_$NAME.pbs
-		echo "cd $NAME/2TEMPEQ/" >> eq_$NAME.pbs
-		echo "mdrun -v -deffnm 2TEMPEQ" >> eq_$NAME.pbs
-		echo "VTGRO='$NAME/2TEMPEQ/2TEMPEQ.gro'" >> eq_$NAME.pbs
-		echo "VTCPT='$NAME/2TEMPEQ/2TEMPEQ.cpt'" >> eq_$NAME.pbs
-		echo " " >> eq_$NAME.pbs
+		echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
+		echo "mkdir -p $NAME/2TEMPEQ/" >> $NAME.pbs
+		echo "$MPICALL_GROMP grompp$MPI -f $VTMDP -c "'$EMGRO'" -p $TOP -o $NAME/2TEMPEQ/2TEMPEQ $WARN" >> $NAME.pbs
+		echo "cd $NAME/2TEMPEQ/" >> $NAME.pbs
+		echo "$MPICALL_MDRUN mdrun$MPI -v -deffnm 2TEMPEQ" >> $NAME.pbs
+		echo "VTGRO='$NAME/2TEMPEQ/2TEMPEQ.gro'" >> $NAME.pbs
+		echo "VTCPT='$NAME/2TEMPEQ/2TEMPEQ.cpt'" >> $NAME.pbs
+		echo " " >> $NAME.pbs
 	else
 		echo "VTGRO=$GRO"
 		echo "VTCPT=$CPTOPT"
 	fi
 	
 	if ! [[ -z $PTMDP ]]; then	
-		echo 'cd $PBS_O_WORKDIR' >> eq_$NAME.pbs
-		echo "mkdir $NAME/3PRESEQ/" >> eq_$NAME.pbs
-		echo "grompp -f $PTMDP -c "'$VTGRO'" -t "'$VTCPT'" -p $TOP -o $NAME/3PRESEQ/3PRESEQ $WARN" >> eq_$NAME.pbs
-		echo "cd $NAME/3PRESEQ/" >> eq_$NAME.pbs
-		echo "mdrun -v -deffnm 3PRESEQ" >> eq_$NAME.pbs
+		echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
+		echo "mkdir -p $NAME/3PRESEQ/" >> $NAME.pbs
+		echo "$MPICALL_GROMP grompp$MPI -f $PTMDP -c "'$VTGRO'" -t "'$VTCPT'" -p $TOP -o $NAME/3PRESEQ/3PRESEQ $WARN" >> $NAME.pbs
+		echo "cd $NAME/3PRESEQ/" >> $NAME.pbs
+		echo "$MPICALL_MDRUN mdrun$MPI -v -deffnm 3PRESEQ" >> $NAME.pbs
 	fi
 fi

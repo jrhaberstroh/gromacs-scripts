@@ -121,7 +121,7 @@ if [ $CLUSTER = "HOPPER" ]; then
 	echo "#PBS -V" >> $NAME.pbs
 
 	echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
-	echo "module load gromacs" >> $NAME.pbs
+	echo "module load gromacs/4.6.1-dp" >> $NAME.pbs
 	echo " " >> $NAME.pbs
 
 	echo "if ! [[ -e $NAME ]]; then" >> $NAME.pbs
