@@ -14,7 +14,7 @@ OPTIONS:
    -h      Show this message
    -o [*]  Output naming scheme; kept consistent between folders & jobs
    -T [*]  Location of long .mdp file to run at equilibrium; it is run once between folders.
-   -t [*]  Location of short .mdp file to run at equilibrium; it is run once between trajectories in a given folder.
+   -s [*]  Location of short .mdp file to run at equilibrium; it is run once between trajectories in a given folder.
    -f [*]  Location of .mdp file to run as a trajectory; alternates running with -t.
    -c [*]  Location of .gro file to use as initial configuration
    -p [*]  Location of .top file to use for parameters
@@ -46,7 +46,7 @@ READY=
 P_THREAD=
 WALL=
 WARN=
-while getopts “ho:T:t:f:c:p:t:N:n:12RP:W:w:” OPTION
+while getopts “ho:T:s:f:c:p:t:N:n:12RP:W:w:” OPTION
 do
      case $OPTION in
          h)
@@ -59,7 +59,7 @@ do
          T)
              FOLDMDP=$OPTARG
              ;;
-         t)
+         s)
              STEPMDP=$OPTARG
              ;;
 	 f)
@@ -105,16 +105,10 @@ do
      esac
 done
 
-NAME=
-FOLDMDP=
-STEPMDP=
-TRAJMDP=
-GRO=
-CPT=
-TOP=
 if [[ -z $NAME ]] || [[ -z $FOLDMDP ]] || [[ -z $STEPMDP ]] || [[ -z $TRAJMDP ]] || [[ -z $GRO ]] || [[ -z $CPT ]] || [[ -z $TOP ]] || [[ -z $CLUSTER ]]
 then
-     echo "BAD INPUT."
+     echo "Missing required input."
+ 	echo "NAME: $NAME LongSpacer: $FOLDMDP ShortSpacer $STEPMDP Trajectory $TRAJMDP .groFile $GRO .cptFile $CPT .topFile $TOP cluster $CLUSTER"
      usage
      exit 1
 fi
@@ -123,8 +117,7 @@ if [ $CLUSTER = "HOPPER" ]; then
 	echo "Not yet built for Hopper"
 fi
 
-if [[ -z $WARN ]]
-then
+if [[ -z $WARN ]]; then
 	WARN="-maxwarn $WARN"
 fi
 
@@ -202,7 +195,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	if [[ $READY ]]; then
 		echo 'JOBID=`qsub $NAME-tprep.pbs`; fi'
 		JOBID='fake'
-
+	fi
 	
 	#---------------------------------------
 	# Run the trajectories, array style
@@ -256,4 +249,5 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	
 	if [ $READY ]; then
 		echo "qsub $NAME-traj.pbs -t 1-$NFOLD -W depend=afterok:$JOBID; fi" 
+	fi
 fi
