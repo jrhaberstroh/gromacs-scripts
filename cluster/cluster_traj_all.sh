@@ -229,7 +229,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	echo 'cd $PBS_O_WORKDIR' >> $NAME-traj.pbs
 	# Accesses the folder built by $NAME$CTR to match ARRAYID
 	echo "cd $NAME-traj/$NAME"'$PBS_ARRAYID' >> $NAME-traj.pbs
-	echo "$GROMPP -f $TIMEMDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o INIT/$BASE.1 -maxwarn 1" >> $NAME-traj.pbs
+	echo "$GROMPP -f $TIMEMDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o INIT/$BASE.1 $WARN" >> $NAME-traj.pbs
 	echo "cd INIT" >> $NAME-traj.pbs
 	echo "$MDRUN -nt 1 -v -deffnm $BASE.1 >& qsub_mdrun.log" >> $NAME-traj.pbs
 
@@ -239,7 +239,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	echo '	cd $PBS_O_WORKDIR' >> $NAME-traj.pbs
 	# Accesses the folder built by $NAME$CTR to match ARRAYID
 	echo "	cd $NAME-traj/$NAME"'$PBS_ARRAYID' >> $NAME-traj.pbs
-	echo "	$GROMPP -f $MDP -p $TOP -c INIT/$BASE."'$num'".gro -t INIT/$BASE."'$num'".cpt -o TRAJ/traj"'$num'" -maxwarn 1" >> $NAME-traj.pbs
+	echo "	$GROMPP -f $MDP -p $TOP -c INIT/$BASE."'$num'".gro -t INIT/$BASE."'$num'".cpt -o TRAJ/traj"'$num'" $WARN" >> $NAME-traj.pbs
 	echo "	cd TRAJ" >> $NAME-traj.pbs
 	echo "	$MDRUN -nt 1 -v -deffnm traj"'$num'" >& qsub_mdrun.log" >> $NAME-traj.pbs
 
@@ -248,7 +248,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	echo '	cd $PBS_O_WORKDIR' >> $NAME-traj.pbs
 	# Accesses the folder built by $NAME$CTR to match ARRAYID
 	echo "	cd $NAME-traj/$NAME"'$PBS_ARRAYID' >> $NAME-traj.pbs
-	echo "	$GROMPP -f $TIMEMDP -p $TOP -c INIT/$BASE."'$num'".gro -t INIT/$BASE."'$num'".cpt -o INIT/$BASE."'$(($num+1))'" -maxwarn 1" >> $NAME-traj.pbs
+	echo "	$GROMPP -f $TIMEMDP -p $TOP -c INIT/$BASE."'$num'".gro -t INIT/$BASE."'$num'".cpt -o INIT/$BASE."'$(($num+1))'" $WARN" >> $NAME-traj.pbs
 	echo "	cd INIT" >> $NAME-traj.pbs
 	echo "	$MDRUN -nt 1 -v -deffnm $BASE."'$(($num+1))'" >& qsub_mdrun.log" >> $NAME-traj.pbs
 	echo "done" >> $NAME-traj.pbs
