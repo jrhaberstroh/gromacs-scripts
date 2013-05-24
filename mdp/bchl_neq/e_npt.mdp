@@ -1,5 +1,4 @@
 title		= Stockmayer NPT equilibration 
-define		= -DPOSRES	; position restrain the stockmayer particle
 ; Run parameters
 integrator	= md		; leap-frog integrator
 dt		= 0.002 	; 2.0 fs
@@ -29,9 +28,9 @@ ewald_rtol	= 1e-5
 optimize_fft	= yes
 ; Temperature coupling is on
 tcoupl		= V-rescale	; modified Berendsen thermostat
-tc-grps		= SOL BCX 	; two coupling groups - more accurate
-tau_t		= 0.1 0.1		; time constant, in ps
-ref_t		= 300 300		; reference temperature, one for each group, in K
+tc-grps		= System 	; two coupling groups - more accurate
+tau_t		= 0.1 		; time constant, in ps
+ref_t		= 300 		; reference temperature, one for each group, in K
 ; Pressure coupling is off
 pcoupl		= Berendsen 		; Berendsen barostat
 pcoupltype 	= isotropic

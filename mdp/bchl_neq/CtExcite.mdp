@@ -29,9 +29,9 @@ ewald_rtol	= 1e-5
 optimize_fft	= yes
 ; Temperature coupling is on
 tcoupl		= V-rescale	; modified Berendsen thermostat
-tc-grps		= SOL SMY 	; two coupling groups - more accurate
-tau_t		= 0.1 0.1		; time constant, in ps
-ref_t		= 300 300		; reference temperature, one for each group, in K
+tc-grps		= System 	; two coupling groups - more accurate
+tau_t		= 0.1		; time constant, in ps
+ref_t		= 300 		; reference temperature, one for each group, in K
 ; Pressure coupling is off
 pcoupl		= Parrinello-Rahman	; Berendsen barostat
 pcoupltype 	= isotropic
@@ -47,7 +47,7 @@ DispCorr	= EnerPres	; account for cut-off vdW scheme
 gen_vel		= no		; assign velocities from Maxwell distribution
 ; Site energy 
 free-energy	= yes
-init-lambda-state  = 1.0
+init-lambda-state  = 1
 coul-lambdas 	= 0.0 1.0
 separate-dhdl-file = yes
 nstcalcenergy	= 10		; Save every .4 fs * 10 = 4 fs
