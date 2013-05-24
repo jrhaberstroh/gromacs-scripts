@@ -145,15 +145,21 @@ if [ $CLUSTER = "HOPPER" ]; then
 		WALL="01:00:00" #Default wall for Hopper
 	fi
 
+	GROMPP="grompp_sp"
+	MDRUN_SMALL="aprun -n 24 mdrun_mpi_sp" # Energy minimization often crashes on too many cores; script may need to be upgraded for situations where fewer than 24 cores are needed.
+	MDRUN="aprun -n $P_THREAD mdrun_mpi_sp"
+
 	# GENERATE THE SCRIPT
 	echo "#PBS -N $NAME-gmx" > $NAME.pbs
 	echo "#PBS -l mppwidth=$P_THREAD" >> $NAME.pbs
 	echo "#PBS -l walltime=$WALL" >> $NAME.pbs
-	echo "#PBS -j oe" >> $NAME.pbs    # Join stdout and error
+	echo "#PBS -j oe" >> $NAME.pbs    	# Join stdout and error
 	echo "#PBS -q $QUEUE" >> $NAME.pbs
 	echo "#PBS -V" >> $NAME.pbs
 
 	echo "module load gromacs/4.6.1-sp" >> $NAME.pbs
+	echo "CRAY_ROOTFS=DSL" >> $NAME.pbs 	# From tech support, to get grompp_sp to run.
+
 	echo 'if [[ -e $PBS_O_WORKDIR'"/$NAME ]]; then" >> $NAME.pbs
 	echo "	rm -r "'$PBS_O_WORKDIR'"/$NAME/*" >> $NAME.pbs
 	echo "else" >> $NAME.pbs
@@ -164,9 +170,9 @@ if [ $CLUSTER = "HOPPER" ]; then
 	if ! [[ -z $EMMDP ]]; then
 		echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
 		echo "mkdir $NAME/1ENERGYMIN/" >> $NAME.pbs
-		echo "aprun -n 1 grompp_sp -f $EMMDP -c $GRO -p $TOP -o $NAME/1ENERGYMIN/1ENERGYMIN $WARN" >> $NAME.pbs
+		echo "$GROMPP -f $EMMDP -c $GRO -p $TOP -o $NAME/1ENERGYMIN/1ENERGYMIN $WARN" >> $NAME.pbs
 		echo "cd $NAME/1ENERGYMIN/" >> $NAME.pbs
-		echo "aprun -n $P_THREAD mdrun_mpi_sp -v -deffnm 1ENERGYMIN" >> $NAME.pbs
+		echo "$MDRUN_SMALL -v -deffnm 1ENERGYMIN" >> $NAME.pbs
 		echo "EMGRO='$NAME/1ENERGYMIN/1ENERGYMIN.gro'" >> $NAME.pbs
 		echo " " >> $NAME.pbs
 	else
@@ -176,9 +182,9 @@ if [ $CLUSTER = "HOPPER" ]; then
 	if ! [[ -z $VTMDP ]]; then
 		echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
 		echo "mkdir $NAME/2TEMPEQ/" >> $NAME.pbs
-		echo "aprun -n 1 grompp_sp -f $VTMDP -c "'$EMGRO'" -p $TOP -o $NAME/2TEMPEQ/2TEMPEQ $WARN" >> $NAME.pbs
+		echo "$GROMPP -f $VTMDP -c "'$EMGRO'" -p $TOP -o $NAME/2TEMPEQ/2TEMPEQ $WARN" >> $NAME.pbs
 		echo "cd $NAME/2TEMPEQ/" >> $NAME.pbs
-		echo "aprun -n $P_THREAD mdrun_mpi_sp -v -deffnm 2TEMPEQ" >> $NAME.pbs
+		echo "$MDRUN -v -deffnm 2TEMPEQ" >> $NAME.pbs
 		echo "VTGRO='$NAME/2TEMPEQ/2TEMPEQ.gro'" >> $NAME.pbs
 		echo "VTCPT='$NAME/2TEMPEQ/2TEMPEQ.cpt'" >> $NAME.pbs
 		echo " " >> $NAME.pbs
@@ -190,9 +196,9 @@ if [ $CLUSTER = "HOPPER" ]; then
 	if ! [[ -z $PTMDP ]]; then	
 		echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
 		echo "mkdir $NAME/3PRESEQ/" >> $NAME.pbs
-		echo "aprun -n 1 grompp_mpi_sp -f $PTMDP -c "'$VTGRO'" -t "'$VTCPT'" -p $TOP -o $NAME/3PRESEQ/3PRESEQ $WARN" >> $NAME.pbs
+		echo "$GROMPP -f $PTMDP -c "'$VTGRO'" -t "'$VTCPT'" -p $TOP -o $NAME/3PRESEQ/3PRESEQ $WARN" >> $NAME.pbs
 		echo "cd $NAME/3PRESEQ/" >> $NAME.pbs
-		echo "aprun -n $P_THREAD mdrun_mpi_sp -v -deffnm 3PRESEQ" >> $NAME.pbs
+		echo "$MDRUN -v -deffnm 3PRESEQ" >> $NAME.pbs
 	fi
 	#echo "PTGRO='$NAME/3PRESEQ/3PRESEQ.gro'" >> $NAME.pbs
 	#echo "PTCPT='$NAME/3PRESEQ/3PRESEQ.cpt'" >> $NAME.pbs
