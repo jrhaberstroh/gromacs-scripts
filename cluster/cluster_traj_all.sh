@@ -192,8 +192,9 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 
 	JOBID=
 	if [[ $READY ]]; then
-		echo 'JOBID=`qsub $NAME-tprep.pbs`; fi'
-		JOBID='fake'
+		echo "qsub $NAME-tprep.pbs"
+		JOBID=`qsub $NAME-tprep.pbs`
+		echo "tprep: $JOBID"
 	fi
 	
 	#---------------------------------------
@@ -247,6 +248,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 # SUBMIT THE SCRIPT
 	
 	if [ $READY ]; then
-		echo "qsub $NAME-traj.pbs -t 1-$NFOLD -W depend=afterok:$JOBID; fi" 
+		echo "qsub $NAME-traj.pbs -t 1-$NFOLD -W depend=afterok:$JOBID"
+		qsub $NAME-traj.pbs -t 1-$NFOLD -W depend=afterok:$JOBID
 	fi
 fi
