@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import shlex
-import pylab as plt
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import numpy as np
 import argparse
 import cPickle
@@ -57,7 +58,7 @@ try:
 		plt.show(block=False)
 		while not args.final_E:
 			try:
-				args.final_E = int(raw_input("What is your estimate for the asymptotic energy value?"))
+				args.final_E = -66.67#float(raw_input("What is your estimate for the asymptotic energy value?"))
 			except ValueError:
 				print 'Invalid number'
 		plt.close()
@@ -71,8 +72,10 @@ except IndexError:
 	print "IndexError: Something has gone wrong with processing indexes in the main function; aborting code"
 
 
-spacing = .01
-bin_gen = np.arange(-1,2,spacing)
+spacing = .1
+minval = -5
+maxval = 6
+bin_gen = np.arange(minval,maxval,spacing)
 bin_gen2= np.reshape(bin_gen, (1,len(bin_gen)))
 len_gen = np.ones((len(time),1))
 bins = np.dot(len_gen, bin_gen2)
@@ -105,14 +108,25 @@ try:
 			e_t_temp /= e_t[0] - args.final_E
 			for i, e_val in enumerate(e_t_temp):
 				try:
-					hist[i][int((e_val + 1) / spacing)] += 1
+					hist[i][int((e_val - minval) / spacing)] += 1
 				except IndexError:
 					print "Encountered value too extreme for histogram,", e_val
+
+
+	
 except TypeError:
 	print "TypeError: Either no files were passed or bad types were passed, skipping histogram computation"
 except IndexError:
 	print "IndexError: Something has gone wrong with processing indexes in the main function; aborting code"
 
+print "plotting the image:"	
+imgplot = plt.imshow(hist.T, origin='lower', cmap='binary')
+ax = plt.gca()
+plt.xticks(np.arange(1,101,10),time[ : :10])
+plt.yticks(np.arange(1,110,10), np.arange(minval,maxval,spacing)[ : :10])
+print len(time)
+print hist.shape
+plt.show()
 
 #print [e_t / file_count, time]
 print "Done with processing"
