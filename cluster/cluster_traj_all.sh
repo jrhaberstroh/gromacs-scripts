@@ -169,6 +169,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	echo " " >> $NAME-tprep.pbs
 	echo "for CTR in $(eval echo {1..$NFOLD})" >> $NAME-tprep.pbs
 	echo "do" >> $NAME-tprep.pbs
+	echo '	cd $PBS_O_WORKDIR/'"$NAME-tprep" >> $NAME-tprep.pbs
 	echo "	mkdir $NAME"'$CTR' >> $NAME-tprep.pbs
 	echo "	cd $NAME"'$CTR' >> $NAME-tprep.pbs
 	echo "	mkdir INIT" >> $NAME-tprep.pbs
