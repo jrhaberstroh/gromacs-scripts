@@ -1,0 +1,22 @@
+; LINES STARTING WITH ';' ARE COMMENTS
+;title		= Minimization	; Title of run
+
+; Parameters describing what to do, when to stop and what to save
+integrator	= steep		; Algorithm (steep = steepest descent minimization)
+emtol		= 100.0  	; Stop minimization when the maximum force < 1.0 kJ/mol
+emstep          = 0.01      ; Energy step size
+nsteps		= 50000	  	; Maximum number of (minimization) steps to perform
+energygrps	= system	; Which energy group(s) to write to disk
+
+nstlist		= 1
+ns_type		= grid
+rlist		= 1.0
+coulombtype	= PME
+rcoulomb	= 1.0
+rvdw		= 1.0
+pbc		= xyz
+
+free-energy	= yes
+init-lambda-state= 1
+coul-lambdas	= 0.0 1.0
+nstdhdl		= 0
