@@ -14,7 +14,7 @@ OPTIONS:
    -h      Show this message
    -o [*]  Output naming scheme; kept consistent between folders & jobs
    -T [*]  Location of long .mdp file to run at equilibrium; it is run once between folders.
-   -t [*]  Location of short .mdp file to run at equilibrium; it is run once between trajectories in a given folder.
+   -s [*]  Location of short .mdp file to run at equilibrium; it is run once between trajectories in a given folder.
    -f [*]  Location of .mdp file to run as a trajectory; alternates running with -t.
    -c [*]  Location of .gro file to use as initial configuration
    -p [*]  Location of .top file to use for parameters
@@ -46,7 +46,7 @@ READY=
 P_THREAD=
 WALL=
 WARN=
-while getopts “ho:T:t:f:c:p:t:N:n:12RP:W:w:” OPTION
+while getopts “ho:T:s:f:c:p:t:N:n:12RP:W:w:” OPTION
 do
      case $OPTION in
          h)
@@ -59,7 +59,7 @@ do
          T)
              FOLDMDP=$OPTARG
              ;;
-         t)
+         s)
              STEPMDP=$OPTARG
              ;;
 	 f)
@@ -105,16 +105,10 @@ do
      esac
 done
 
-NAME=
-FOLDMDP=
-STEPMDP=
-TRAJMDP=
-GRO=
-CPT=
-TOP=
 if [[ -z $NAME ]] || [[ -z $FOLDMDP ]] || [[ -z $STEPMDP ]] || [[ -z $TRAJMDP ]] || [[ -z $GRO ]] || [[ -z $CPT ]] || [[ -z $TOP ]] || [[ -z $CLUSTER ]]
 then
-     echo "BAD INPUT."
+     echo "Missing required input."
+ 	echo "NAME: $NAME LongSpacer: $FOLDMDP ShortSpacer $STEPMDP Trajectory $TRAJMDP .groFile $GRO .cptFile $CPT .topFile $TOP cluster $CLUSTER"
      usage
      exit 1
 fi
@@ -123,8 +117,7 @@ if [ $CLUSTER = "HOPPER" ]; then
 	echo "Not yet built for Hopper"
 fi
 
-if [[ -z $WARN ]]
-then
+if ! [[ -z $WARN ]]; then
 	WARN="-maxwarn $WARN"
 fi
 
@@ -140,14 +133,14 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	if [ $P_THREAD -gt 1 ]; then
 		GROMACS_VERSION='gromacs/4.6-mpi'
 		GROMPP="mpirun -n 1 grompp_mpi"
-		GROMPP="mpirun -n $P_THREAD mdrun_mpi"
+		MDRUN="mpirun -n $P_THREAD mdrun_mpi"
 		QUEUE2='cm_normal'
 		CORE_RESOURCE_1="nodes=$(($P_THREAD/4)):ppn=4:catamount"
 		CORE_RESOURCE_2="nodes=$(($P_THREAD/4)):ppn=4:catamount"
 	else
 		GROMACS_VERSION='gromacs/4.6'
 		GROMPP='grompp'
-		MDRUN='mdrun'
+		MDRUN='mdrun -nt 1'
 		QUEUE2='cm_serial'
 		CORE_RESOURCE_1="nodes=1:ppn=4:catamount"
 		CORE_RESOURCE_2="nodes=1:ppn=1:cmserial"
@@ -182,12 +175,11 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	echo "	mkdir TRAJ" >> $NAME-tprep.pbs
 	echo "	cd INIT" >> $NAME-tprep.pbs
 	echo '	if [[ -z $PREVGRO ]]' >> $NAME-tprep.pbs
-	echo "		then $GROMPP $WARN -f $FOLDMDP -p $TOP -c $GRO -t $CPT -o $NAME"'$CTR.tpr' >> $NAME-tprep.pbs
+	echo "		then $GROMPP $WARN -f $FOLDMDP -p $TOP -c $GRO -t $CPT -o $NAME"'$CTR' >> $NAME-tprep.pbs
 	echo "	else" >> $NAME-tprep.pbs
-	echo "		$GROMPP $WARN -f $FOLDMDP -p $TOP "'-c $PREVGRO -t $PREVCPT -o '"$NAME"'$CTR.tpr' >> $NAME-tprep.pbs
+	echo "		$GROMPP $WARN -f $FOLDMDP -p $TOP "'-c $PREVGRO -t $PREVCPT -o '"$NAME"'$CTR' >> $NAME-tprep.pbs
 	echo "	fi" >> $NAME-tprep.pbs
-	echo "	$MDRUN -deffnm $NAME"'$CTR.tpr' >> $NAME-tprep.pbs
-	echo "	$MDRUN -deffnm $NAME"'$CTR.tpr' >> $NAME-tprep.pbs
+	echo "	$MDRUN -deffnm $NAME"'$CTR' >> $NAME-tprep.pbs
 	echo '	PREVGRO=$(pwd)/'"$NAME"'$CTR.gro' >> $NAME-tprep.pbs
 	echo '	PREVCPT=$(pwd)/'"$NAME"'$CTR.cpt' >> $NAME-tprep.pbs
 	echo "done" >> $NAME-tprep.pbs
@@ -200,9 +192,10 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 
 	JOBID=
 	if [[ $READY ]]; then
-		echo 'JOBID=`qsub $NAME-tprep.pbs`; fi'
-		JOBID='fake'
-
+		echo "qsub $NAME-tprep.pbs"
+		JOBID=`qsub $NAME-tprep.pbs`
+		echo "tprep: $JOBID"
+	fi
 	
 	#---------------------------------------
 	# Run the trajectories, array style
@@ -229,9 +222,9 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	echo 'cd $PBS_O_WORKDIR' >> $NAME-traj.pbs
 	# Accesses the folder built by $NAME$CTR to match ARRAYID
 	echo "cd $NAME-traj/$NAME"'$PBS_ARRAYID' >> $NAME-traj.pbs
-	echo "$GROMPP -f $TIMEMDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o INIT/$BASE.1 -maxwarn 1" >> $NAME-traj.pbs
+	echo "$GROMPP -f $TIMEMDP -p $TOP -c INIT/$BASE.gro -t INIT/$BASE.cpt -o INIT/$BASE.1 $WARN" >> $NAME-traj.pbs
 	echo "cd INIT" >> $NAME-traj.pbs
-	echo "$MDRUN -nt 1 -v -deffnm $BASE.1 >& qsub_mdrun.log" >> $NAME-traj.pbs
+	echo "$MDRUN -v -deffnm $BASE.1 >& qsub_mdrun.log" >> $NAME-traj.pbs
 
 
 	echo "for (( num=1 ; num <= $NTRAJ ; num++)) ; do" >> $NAME-traj.pbs
@@ -239,21 +232,23 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	echo '	cd $PBS_O_WORKDIR' >> $NAME-traj.pbs
 	# Accesses the folder built by $NAME$CTR to match ARRAYID
 	echo "	cd $NAME-traj/$NAME"'$PBS_ARRAYID' >> $NAME-traj.pbs
-	echo "	$GROMPP -f $MDP -p $TOP -c INIT/$BASE."'$num'".gro -t INIT/$BASE."'$num'".cpt -o TRAJ/traj"'$num'" -maxwarn 1" >> $NAME-traj.pbs
+	echo "	$GROMPP -f $MDP -p $TOP -c INIT/$BASE."'$num'".gro -t INIT/$BASE."'$num'".cpt -o TRAJ/traj"'$num'" $WARN" >> $NAME-traj.pbs
 	echo "	cd TRAJ" >> $NAME-traj.pbs
-	echo "	$MDRUN -nt 1 -v -deffnm traj"'$num'" >& qsub_mdrun.log" >> $NAME-traj.pbs
+	echo "	$MDRUN -v -deffnm traj"'$num'" >& qsub_mdrun.log" >> $NAME-traj.pbs
 
 	# Run the mini-spacer for an arbitrary time to make sure we continue to sample the equilibrium distribution of initial configs
 	echo " " >> $NAME-traj.pbs
 	echo '	cd $PBS_O_WORKDIR' >> $NAME-traj.pbs
 	# Accesses the folder built by $NAME$CTR to match ARRAYID
 	echo "	cd $NAME-traj/$NAME"'$PBS_ARRAYID' >> $NAME-traj.pbs
-	echo "	$GROMPP -f $TIMEMDP -p $TOP -c INIT/$BASE."'$num'".gro -t INIT/$BASE."'$num'".cpt -o INIT/$BASE."'$(($num+1))'" -maxwarn 1" >> $NAME-traj.pbs
+	echo "	$GROMPP -f $TIMEMDP -p $TOP -c INIT/$BASE."'$num'".gro -t INIT/$BASE."'$num'".cpt -o INIT/$BASE."'$(($num+1))'" $WARN" >> $NAME-traj.pbs
 	echo "	cd INIT" >> $NAME-traj.pbs
-	echo "	$MDRUN -nt 1 -v -deffnm $BASE."'$(($num+1))'" >& qsub_mdrun.log" >> $NAME-traj.pbs
+	echo "	$MDRUN -v -deffnm $BASE."'$(($num+1))'" >& qsub_mdrun.log" >> $NAME-traj.pbs
 	echo "done" >> $NAME-traj.pbs
 # SUBMIT THE SCRIPT
 	
 	if [ $READY ]; then
-		echo "qsub $NAME-traj.pbs -t 1-$NFOLD -W depend=afterok:$JOBID; fi" 
+		echo "qsub $NAME-traj.pbs -t 1-$NFOLD -W depend=afterok:$JOBID"
+		qsub $NAME-traj.pbs -t 1-$NFOLD -W depend=afterok:$JOBID
+	fi
 fi
