@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import shlex
+import pylab as plt
 import numpy as np
 import argparse
 import cPickle
@@ -8,7 +9,7 @@ parser = argparse.ArgumentParser(description='Average over many .xvg energy traj
 parser.add_argument('--files', dest='file_list', nargs='+', type=str, help='A collection of all of the files to be averaged over')
 parser.add_argument('-n', dest='total_time', type=int, default=0, help='The total number of time steps to average over. Overwritten by the number of time steps in the first file opened if this is smaller.')
 parser.add_argument('-pkl', dest='pickle_name', type=str, default='', help='The name of the pickle file to send the output into.')
-parser.add_argument('-Ef', dest='final_E', type=str, default=0, help='The asymptotic value for the trajectories. E0, the initial value, is selected from the average')
+parser.add_argument('-Ef', dest='final_E', type=str, default=None, help='The asymptotic value for the trajectories. E0, the initial value, is selected from the average')
 
 args = parser.parse_args()
 istimelimit = 0;
@@ -49,10 +50,21 @@ try:
 			file_count = file_count + 1;
 	
 	e_t = np.array(e_t)
+	e_t /= file_count
 	time = np.array(time)
+	if not args.final_E:
+		plt.plot(time, e_t)
+		plt.show(block=False)
+		while not args.final_E:
+			try:
+				args.final_E = int(raw_input("What is your estimate for the asymptotic energy value?"))
+			except ValueError:
+				print 'Invalid number'
+		plt.close()
+	
 	S_t = e_t - args.final_E
 	S_t /= e_t[0] - args.final_E
-	print [e_t / file_count, time]
+	print [e_t, time]
 except TypeError:
 	print "TypeError: Either no files were passed or bad types were passed, skipping E_av(t) computation."
 except IndexError:
@@ -62,10 +74,10 @@ except IndexError:
 spacing = .01
 bin_gen = np.arange(-1,2,spacing)
 bin_gen2= np.reshape(bin_gen, (1,len(bin_gen)))
-len_gen = np.ones((len(S_t),1))
+len_gen = np.ones((len(time),1))
 bins = np.dot(len_gen, bin_gen2)
 #print bins
-hist = np.zeros((len(S_t), len(bin_gen)))
+hist = np.zeros((len(time), len(bin_gen)))
 #print hist
 
 print "Beginning the histogram calculation..."
@@ -107,7 +119,9 @@ print "Done with processing"
 
 if (args.pickle_name != ""):
 	print "Pickle requested!"
-	pkl_out = open(args.pickle_name, 'w')
+	pkl_out = open("et_"+args.pickle_name, 'w')
 	cPickle.dump([time, e_t/file_count], pkl_out)
 	pkl_out.close()
-
+	pkl_out = open("hist_"+args.pickle_name, 'w')
+	cPickle.dump([time, bins, hist], pkl_out)
+	pkl_out.close()
