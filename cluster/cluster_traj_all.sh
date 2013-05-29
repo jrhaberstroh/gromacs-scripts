@@ -245,7 +245,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	echo "	cd $NAME-traj/$NAME"'$PBS_ARRAYID' >> $NAME-traj.pbs
 	echo "	$GROMPP -f $STEPMDP -p $TOP -c "'INIT/$BASE.$num.gro -t INIT/$BASE.$num.cpt -o INIT/$BASE.$(($num+1)) '" $WARN" >> $NAME-traj.pbs
 	echo "	cd INIT" >> $NAME-traj.pbs
-	echo "	$MDRUN2 -v -deffnm $BASE."'$(($num+1))'" >& qsub_mdrun.log" >> $NAME-traj.pbs
+	echo "	$MDRUN2 -v -deffnm "'$BASE.$(($num+1))'" >& qsub_mdrun.log" >> $NAME-traj.pbs
 	echo "done" >> $NAME-traj.pbs
 # SUBMIT THE SCRIPT
 	
