@@ -1,8 +1,8 @@
 title		= Bacteriochlorophyll equilibrium run
 ; Run parameters
 integrator	= md		; leap-frog integrator
-dt		= 0.0004	; 2 fs
-nsteps		= 10000000	; .4fs * 10000000 = 4ns 
+dt		= 0.0005	; 5 fs
+nsteps		= 10000000	; .5fs * 10000000 = 5ns 
 ; Output control - Save every .4 fs * 1000000 = .4 ns
 nstxout		= 50000 
 nstvout		= 100000
@@ -49,5 +49,5 @@ free-energy	= yes
 init-lambda-state  = 0.0
 coul-lambdas 	= 0.0 1.0
 separate-dhdl-file = yes
-nstcalcenergy	= 10		; Save every .4 fs * 10 = 4 fs
-nstdhdl		= 10		; Save every .4 fs * 10 = 4 fs
+nstcalcenergy	= 10		; Save every .5 fs * 10 = 5 fs
+nstdhdl		= 10		; Save every .5 fs * 10 = 5 fs
