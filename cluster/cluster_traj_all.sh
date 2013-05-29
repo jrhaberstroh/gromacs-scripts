@@ -22,7 +22,7 @@ OPTIONS:
    -N      Number of folders to generate (default=100)
    -n      Number of trajectories to generate in each directory (default=100)
    -1 [+]  Setup PBS for hopper@nersc (24 cores per node, each trajectory must utilize a multiple of 24 cores)
-   -2 [+]  Setup PBS for catamount@lbl (4 cores per node in cm_normal, if [-P 1] will run on cm_serial with 1 ppn)
+   -2 [+]  Setup PBS for catamount@lbl (16 cores per node in cm_normal, if [-P 1] will run trajectories on cm_serial with 1 ppn and equilibration on one node)
    -R      READY TO SUBMIT; pass this argument to run qsub at all appropriate intervals. Without this flag, only .pbs files will be generated.
    -P      Number of processors to request for any instance of the jobs (cluster default)
    -W      Number of warnings allowed by grompp (default=gromacs-default) (-W 1 strongly recommended when bond-lambda values are not set)
@@ -135,14 +135,15 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 		GROMPP="mpirun -n 1 grompp_mpi"
 		MDRUN="mpirun -n $P_THREAD mdrun_mpi"
 		QUEUE2='cm_normal'
-		CORE_RESOURCE_1="nodes=$(($P_THREAD/4)):ppn=4:catamount"
-		CORE_RESOURCE_2="nodes=$(($P_THREAD/4)):ppn=4:catamount"
+		CORE_RESOURCE_1="nodes=$(($P_THREAD/16)):ppn=16:catamount"
+		CORE_RESOURCE_2="nodes=$(($P_THREAD/16)):ppn=16:catamount"
 	else
 		GROMACS_VERSION='gromacs/4.6'
 		GROMPP='grompp'
-		MDRUN='mdrun -nt 1'
+		MDRUN1='mdrun -nt 16'
+		MDRUN2='mdrun -nt 1'
 		QUEUE2='cm_serial'
-		CORE_RESOURCE_1="nodes=1:ppn=4:catamount"
+		CORE_RESOURCE_1="nodes=1:ppn=16:catamount"
 		CORE_RESOURCE_2="nodes=1:ppn=1:cmserial"
 	fi
 
@@ -180,7 +181,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	echo "	else" >> $NAME-tprep.pbs
 	echo "		$GROMPP $WARN -f $FOLDMDP -p $TOP "'-c $PREVGRO -t $PREVCPT -o '"$NAME"'$CTR' >> $NAME-tprep.pbs
 	echo "	fi" >> $NAME-tprep.pbs
-	echo "	$MDRUN -deffnm $NAME"'$CTR' >> $NAME-tprep.pbs
+	echo "	$MDRUN1 -deffnm $NAME"'$CTR' >> $NAME-tprep.pbs
 	echo '	PREVGRO=$(pwd)/'"$NAME"'$CTR.gro' >> $NAME-tprep.pbs
 	echo '	PREVCPT=$(pwd)/'"$NAME"'$CTR.cpt' >> $NAME-tprep.pbs
 	echo "done" >> $NAME-tprep.pbs
@@ -244,7 +245,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	echo "	cd $NAME-traj/$NAME"'$PBS_ARRAYID' >> $NAME-traj.pbs
 	echo "	$GROMPP -f $TIMEMDP -p $TOP -c INIT/$BASE."'$num'".gro -t INIT/$BASE."'$num'".cpt -o INIT/$BASE."'$(($num+1))'" $WARN" >> $NAME-traj.pbs
 	echo "	cd INIT" >> $NAME-traj.pbs
-	echo "	$MDRUN -v -deffnm $BASE."'$(($num+1))'" >& qsub_mdrun.log" >> $NAME-traj.pbs
+	echo "	$MDRUN2 -v -deffnm $BASE."'$(($num+1))'" >& qsub_mdrun.log" >> $NAME-traj.pbs
 	echo "done" >> $NAME-traj.pbs
 # SUBMIT THE SCRIPT
 	
