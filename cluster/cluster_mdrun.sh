@@ -21,7 +21,7 @@ OPTIONS:
    -P      Number of cores per to run on, default is one full node on whichever selected cluster.
    -v      Verbose (default = false)
    -1 (+)  Setup PBS for hopper@nersc. Hopper has nodes with 24 cores. Default queue is reg_1hour with walltime=01:00:00.
-   -2 (+)  Setup PBS for cmserial on catamount@lbl (NOTE: Does not support -P, all jobs are run on single core)
+   -2 (+)  Setup PBS for catamount#lbl. Catamount has nodes with 16 cores. Default queue is thread-mpi on one cm_normal mode with walltime=05:00:00. Note: [-q cm_serial] will set [-P 1] automatically, and will override the -P setting.
    -q      Manual override for queue to submit to.
    -w      Walltime override
    -W      Max number of allowed warnings for grompp (Default = 0)
@@ -142,6 +142,9 @@ fi
 if [ $CLUSTER = "CATAMOUNT" ]; then
 	if [[ -z $QUEUE ]]; then
 		QUEUE="cm_normal" #Default queue for Hopper
+	fi
+	if [[ -z $P_THREAD ]]; then
+		P_THREAD=16
 	fi
 	if [[ -z $WALL ]]; then
 		WALL="05:00:00" #Default wall for Hopper
