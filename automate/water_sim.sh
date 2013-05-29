@@ -3,7 +3,13 @@
 usage()
 {
 cat << EOF
-usage: $0 options
+===================================
+water_sim.sh
+===================================
+
+A shell script to automate simulation of slab geometry water in GROMACS.
+
+usage: $0 
 
 OPTIONS:
    -h      Show this message
