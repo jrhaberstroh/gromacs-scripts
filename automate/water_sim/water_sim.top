@@ -1,0 +1,8 @@
+#include "amber03.ff/forcefield.itp"
+
+[ system ]
+Water in a slab geometry
+
+#include "amber03.ff/tip4p.itp"
+
+[ molecules ]

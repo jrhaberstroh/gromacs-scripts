@@ -5,11 +5,11 @@ integrator	= md
 dt		= .002
 nsteps		= 100000
 ; Output data
-nstxout		= 100000	; collect positions
-nstvout		= 100000 	; collect velocities
-nstxtcout	= 100000 	; compressed trajectory
-nstenergy	= 100000
-nstlog		= 10000
+nstxout		= 1000		; collect positions
+nstvout		= 1000	 	; collect velocities
+nstxtcout	= 1000	 	; compressed trajectory
+nstenergy	= 1000
+nstlog		= 1000
 ;
 ;Particle Tracking
 ; Bond constraints
@@ -22,12 +22,12 @@ lincs_order	= 2		; smaller lincs_order means more parallelization
 ns_type		= grid		; Particularly efficient for water
 nstlist		= 5		; Number of steps before update neighbor list update (10 fs)
 rlist		= 1.0		; Neighbor list size (10 angstrom)
-rcoulomb	= 1.0		; 10 angstrom coulomb cutoff
-rvdw		= 1.0		; 10 angstrom Van Der Waals cutoff
 ;
 ;Geometry and Energetics
 ; Electrostatics
 coulombtype	= PME		; Particle-mesh Ewald Summation
+rcoulomb	= 1.0		; 10 angstrom coulomb cutoff
+rvdw		= 1.0		; 10 angstrom Van Der Waals cutoff
 pme_order	= 4		; [fourierspacing * pme_order = accuracy]
 fourierspacing	= 0.16		; larger fourierspacing decreases load imbalance
 ewald_rtol	= 1e-5
@@ -52,5 +52,7 @@ pcoupltype	= isotropic
 tau_p		= 2.0
 ref_p		= 1.0
 compressibility	= 4.5e-5
-
+refcoord_scaling= com
+; Velocity generation
+gen_vel		= no
 
