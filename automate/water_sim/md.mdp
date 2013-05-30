@@ -36,7 +36,10 @@ DispCorr	= EnerPres	; correct for vdw cutoff
 ; Wall parameters: from suggestions in gromacs mdp manual
 pbc 		= xy		; pbc in xy only
 nwall		= 2		; wall at z=0 and z=z-box
-wall-type	= 12-6		; direct 12-6 LJ as fn of distance from wall
+wall-type	= 10-4		; direct 12-6 LJ as fn of distance from wall
+wall-density	= 5 5
+wall-atomtype 	= CA CA
+wall-r-linpot	= -1
 ewald-geometry	= 3dc		; Only Ewald sum compatible with slab geometry, requires box_height >= slab_height * 3
 wall-ewald-zfac = 3		; Extra empty space for slab geometry calculation (reducing coulomb interaction)
 ;

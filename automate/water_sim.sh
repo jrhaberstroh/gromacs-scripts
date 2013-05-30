@@ -19,7 +19,7 @@ OPTIONS:
 EOF
 }
 
-WIDTH=2.0
+WIDTH=5.0
 THICK=
 NAME=
 while getopts “hN:t:w:” OPTION
@@ -76,17 +76,17 @@ EQDIR=eq$NAME
 if ! [ -e $EQDIR ]; then
 	mkdir $EQDIR
 fi
-grompp -f $SCRIPT_DIR/water_sim/em.mdp -o $EQDIR/em -po $EQDIR/em.mdp -c $NAME.gro -p $NAME.gro >& $EQDIR/em_grompp.err
+grompp -f $SCRIPT_DIR/water_sim/em.mdp -o $EQDIR/em -po $EQDIR/em.mdp -c $NAME.gro -p $NAME.top >& $EQDIR/em_grompp.err
 cd $EQDIR
 mdrun -v -deffnm em >& em.err
 cd -
 
-grompp -f $SCRIPT_DIR/water_sim/nvt.mdp -o $EQDIR/nvt -po $EQDIR/nvt.mdp -c $EQDIR/em.gro -p $NAME.gro >& $EQDIR/nvt_grompp.err
+grompp -f $SCRIPT_DIR/water_sim/nvt.mdp -o $EQDIR/nvt -po $EQDIR/nvt.mdp -c $EQDIR/em.gro -p $NAME.top >& $EQDIR/nvt_grompp.err
 cd $EQDIR
 mdrun -v -deffnm nvt >& nvt.err
 cd -
 
-grompp -f $SCRIPT_DIR/water_sim/npt.mdp -o $EQDIR/npt -po $EQDIR/npt.mdp -c $EQDIR/em.gro -p $NAME.gro -t $EQDIR/nvt.cpt >& $EQDIR/npt_grompp.err
+grompp -f $SCRIPT_DIR/water_sim/npt.mdp -o $EQDIR/npt -po $EQDIR/npt.mdp -c $EQDIR/em.gro -p $NAME.top -t $EQDIR/nvt.cpt >& $EQDIR/npt_grompp.err
 cd $EQDIR
 mdrun -v -deffnm npt >& npt.err
 cd -

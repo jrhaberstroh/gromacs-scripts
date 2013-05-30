@@ -1,8 +1,21 @@
+; Include forcefield parameters
 #include "amber03.ff/forcefield.itp"
 
-[ system ]
-Water in a slab geometry
-
+; Include water topology
 #include "amber03.ff/tip4p.itp"
+
+#ifdef POSRES_WATER
+; Position restraint for each water oxygen
+[ position_restraints ]
+;  i funct       fcx        fcy        fcz
+   1    1       1000       1000       1000
+#endif
+
+; Include topology for ions
+#include "amber03.ff/ions.itp"
+
+[ system ]
+; Name
+Water slab
 
 [ molecules ]
