@@ -76,19 +76,20 @@ EQDIR=eq$NAME
 if ! [ -e $EQDIR ]; then
 	mkdir $EQDIR
 fi
-grompp -f $SCRIPT_DIR/water_sim/em.mdp -o $EQDIR/em -po $EQDIR/em.mdp -c $NAME.gro -p $NAME.top >& $EQDIR/em_grompp.err
+
+grompp -f $SCRIPT_DIR/water_sim/em.mdp -o $EQDIR/em -po $EQDIR/em.mdp -c $NAME.gro -p $NAME.top
 cd $EQDIR
-mdrun -v -deffnm em >& em.err
+mdrun -v -deffnm em
 cd -
 
-grompp -f $SCRIPT_DIR/water_sim/nvt.mdp -o $EQDIR/nvt -po $EQDIR/nvt.mdp -c $EQDIR/em.gro -p $NAME.top >& $EQDIR/nvt_grompp.err
+grompp -f $SCRIPT_DIR/water_sim/nvt.mdp -o $EQDIR/nvt -po $EQDIR/nvt.mdp -c $EQDIR/em.gro -p $NAME.top
 cd $EQDIR
-mdrun -v -deffnm nvt >& nvt.err
+mdrun -v -deffnm nvt
 cd -
 
-grompp -f $SCRIPT_DIR/water_sim/npt.mdp -o $EQDIR/npt -po $EQDIR/npt.mdp -c $EQDIR/em.gro -p $NAME.top -t $EQDIR/nvt.cpt >& $EQDIR/npt_grompp.err
+grompp -f $SCRIPT_DIR/water_sim/npt.mdp -o $EQDIR/npt -po $EQDIR/npt.mdp -c $EQDIR/nvt.gro -p $NAME.top -t $EQDIR/nvt.cpt
 cd $EQDIR
-mdrun -v -deffnm npt >& npt.err
+mdrun -v -deffnm npt
 cd -
 
 #Important to check the slab thickness in post-analysisS

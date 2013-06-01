@@ -4,10 +4,10 @@ integrator	= md		; leap-frog integrator
 dt		= 0.002 	; 2.0 fs
 nsteps		= 50000		; 2.0 fs * 50000 = 100 ps
 ; Output control: Save every 2 fs * 1000 = 2ps
-nstxout		= 1000
-nstvout		= 1000
-nstenergy	= 1000
-nstlog		= 1000
+nstxout		= 500
+nstvout		= 500
+nstenergy	= 500
+nstlog		= 500
 
 ;Particle Tracking
 ; Bond constraints
@@ -35,9 +35,9 @@ DispCorr	= EnerPres	; correct for vdw cutoff
 pbc 		= xy		; pbc in xy only
 nwall		= 2		; wall at z=0 and z=z-box
 wall-type	= 10-4		; direct 12-6 LJ as fn of distance from wall
-wall-density	= 5 5
+wall-density	= 12 12
 wall-atomtype 	= CA CA
-wall-r-linpot	= -1
+wall-r-linpot	= 3
 ewald-geometry	= 3dc		; Only Ewald sum compatible with slab geometry, requires box_height >= slab_height * 3
 wall-ewald-zfac = 3		; Extra empty space for slab geometry calculation (reducing coulomb interaction)
 
@@ -46,12 +46,13 @@ tcoupl		= V-rescale	; modified Berendsen thermostat
 tc-grps		= System 	; two coupling groups - more accurate
 tau_t		= 0.1 		; time constant, in ps
 ref_t		= 300 		; reference temperature, one for each group, in K
+
 ; Pressure coupling is off
 pcoupl		= Berendsen 		; Berendsen barostat
-pcoupltype 	= isotropic
+pcoupltype 	= semiisotropic
 tau_p		= 2.0
-ref_p		= 1.0
-compressibility	= 4.5e-5
+ref_p		= 1.0 1.0
+compressibility	= 4.5e-5 0.0
 refcoord_scaling= com
 ; Velocity generation
-gen_vel		= no
+gen_vel		= no		; assign velocities from Maxwell distribution
