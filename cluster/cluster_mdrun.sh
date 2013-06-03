@@ -20,7 +20,7 @@ OPTIONS:
    -t [*]  Location of .cpt file for continuation from equilibration
    -P      Number of cores per to run on, default is one full node on whichever selected cluster.
    -v      Verbose (default = false)
-   -1 (+)  Setup PBS for hopper@nersc. Hopper has nodes with 24 cores. Default queue is reg_1hour with walltime=01:00:00.
+   -1 (+)  Setup PBS for hopper@nersc. Hopper has nodes with 24 cores. Default queue is reg_1hour with walltime=01:00:00 on one core with Thread-MPI.
    -2 (+)  Setup PBS for catamount#lbl. Catamount has nodes with 16 cores. Default queue is thread-mpi on one cm_normal mode with walltime=05:00:00. Note: [-q cm_serial] will set [-P 1] automatically, and will override the -P setting.
    -q      Manual override for queue to submit to.
    -w      Walltime override
@@ -111,6 +111,18 @@ if [ $CLUSTER = "HOPPER" ]; then
 	if [[ -z $WALL ]]; then
 		WALL="01:00:00" #Default wall for Hopper
 	fi
+	if [[ -z $P_THREAD ]]; then
+		P_THREAD=24
+	fi
+
+	GROMACS_VERSION="gromacs/4.6.1-sp"
+	GROMPP="grompp_sp"
+	MDRUN=
+	if [[ $P_THREAD -gt 24 ]]; then
+		MDRUN="aprun -n $P_THREAD mdrun_mpi_sp"
+	else
+		MDRUN="mdrun_sp -ntmpi $P_THREAD"
+	fi
 
 	# GENERATE THE SCRIPT
 	echo "#PBS -N $NAME-gmx-md" > $NAME.pbs
@@ -121,7 +133,8 @@ if [ $CLUSTER = "HOPPER" ]; then
 	echo "#PBS -V" >> $NAME.pbs
 
 	echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
-	echo "module load gromacs/4.6.1-dp" >> $NAME.pbs
+	echo "module load $GROMACS_VERSION" >> $NAME.pbs
+	echo "CRAY_ROOTFS=DSL" >> $NAME.pbs 	# From tech support, to get grompp_sp to run.
 	echo " " >> $NAME.pbs
 
 	echo "if ! [[ -e $NAME ]]; then" >> $NAME.pbs
@@ -129,9 +142,9 @@ if [ $CLUSTER = "HOPPER" ]; then
 	echo "else" >> $NAME.pbs
 	echo "	rm -r $NAME/*" >> $NAME.pbs
 	echo "fi" >> $NAME.pbs
-	echo "aprun -n 1 grompp_mpi -f $MDP -p $TOP -c $GRO -t $CPT $WARN -o $NAME/$NAME.tpr" >> $NAME.pbs
+	echo "$GROMPP -f $MDP -p $TOP -c $GRO -t $CPT $WARN -o $NAME/$NAME.tpr" >> $NAME.pbs
 	echo "cd $NAME" >> $NAME.pbs
-	echo "aprun -n $P_THREAD mdrun_mpi -v -deffnm $NAME >& qsub_mdrun.log" >> $NAME.pbs
+	echo "$MDRUN -v -deffnm $NAME >& qsub_mdrun.log" >> $NAME.pbs
 	
 	# SUBMIT THE SCRIPT
 	if [[ $READY ]]; then 
