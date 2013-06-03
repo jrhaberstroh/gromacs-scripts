@@ -1,9 +1,8 @@
-title		= Stockmayer equilibrium generation run
-define		= -DPOSRES	; position restrain the stockmayer particle
+title		= Bacteriochlorophyll equilibrium run
 ; Run parameters
 integrator	= md		; leap-frog integrator
-dt		= 0.0004	; 2 fs
-nsteps		= 10000000	; .4fs * 10000000 = 4ns 
+dt		= 0.0005	; 5 fs
+nsteps		= 10000000	; .5fs * 10000000 = 5ns 
 ; Output control - Save every .4 fs * 1000000 = .4 ns
 nstxout		= 50000 
 nstvout		= 100000
@@ -13,8 +12,8 @@ nstlog		= 100000
 continuation	= yes		; first dynamics run
 constraint_algorithm = lincs	; holonomic constraints 
 constraints	= all-bonds	; all bonds (even heavy atom-H bonds) constrained
-lincs_iter	= 1		; accuracy of LINCS
-lincs_order	= 4		; also related to accuracy
+lincs_iter	= 3		; accuracy of LINCS
+lincs_order	= 2		; also related to accuracy
 ; Neighborsearching
 ns_type		= grid		; search neighboring grid cells
 nstlist		= 5		; 10 fs
@@ -50,5 +49,5 @@ free-energy	= yes
 init-lambda-state  = 0.0
 coul-lambdas 	= 0.0 1.0
 separate-dhdl-file = yes
-nstcalcenergy	= 10		; Save every .4 fs * 10 = 4 fs
-nstdhdl		= 10		; Save every .4 fs * 10 = 4 fs
+nstcalcenergy	= 10		; Save every .5 fs * 10 = 5 fs
+nstdhdl		= 10		; Save every .5 fs * 10 = 5 fs

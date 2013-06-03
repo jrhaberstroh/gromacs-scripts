@@ -21,7 +21,7 @@ OPTIONS:
    -P      Number of cores per to run on, default is one full node on whichever selected cluster.
    -v      Verbose (default = false)
    -1 (+)  Setup PBS for hopper@nersc. Hopper has nodes with 24 cores. Default queue is reg_1hour with walltime=01:00:00.
-   -2 (+)  Setup PBS for cmserial on catamount@lbl (NOTE: Does not support -P, all jobs are run on single core)
+   -2 (+)  Setup PBS for catamount#lbl. Catamount has nodes with 16 cores. Default queue is thread-mpi on one cm_normal mode with walltime=05:00:00. Note: [-q cm_serial] will set [-P 1] automatically, and will override the -P setting.
    -q      Manual override for queue to submit to.
    -w      Walltime override
    -W      Max number of allowed warnings for grompp (Default = 0)
@@ -143,6 +143,9 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	if [[ -z $QUEUE ]]; then
 		QUEUE="cm_normal" #Default queue for Hopper
 	fi
+	if [[ -z $P_THREAD ]]; then
+		P_THREAD=16
+	fi
 	if [[ -z $WALL ]]; then
 		WALL="05:00:00" #Default wall for Hopper
 	fi
@@ -153,13 +156,30 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	if [ $QUEUE = "cm_serial" ]; then
 		echo "#PBS -l nodes=1:ppn=1:cm_serial" >> $NAME.pbs
 	else 
-		echo "#PBS -l nodes=4:ppn=4:catamount" >> $NAME.pbs
+		echo "#PBS -l nodes=$(($P_THREAD / 16)):ppn=16:catamount" >> $NAME.pbs
 	fi
 	echo "#PBS -l walltime=$WALL" >> $NAME.pbs
 	echo "#PBS -j oe" >> $NAME.pbs
 	echo "#PBS -V" >> $NAME.pbs
 	
-	echo "module load gromacs" >> $NAME.pbs
+	GROMP=
+	MDRUN=
+	if [ $QUEUE = "cm_serial" ]; then
+		echo "cm_serial queue requested, setting number of cores to 1."
+		echo "module load gromacs/4.6" >> $NAME.pbs
+		MDRUN="mdrun -nt 1"
+		GROMP="grompp"
+	elif [[ $P_THREAD -gt 16 ]]; then
+		echo "module load gromacs/4.6-mpi" >> $NAME.pbs
+		MDRUN="mpirun -n $P_THREAD mdrun_mpi"
+		GROMP='mpirun -n 1 grompp_mpi'
+	else
+		echo "module load gromacs/4.6" >> $NAME.pbs
+		MDRUN="mdrun -nt $P_THREAD"
+		GROMP="grompp"
+	fi
+	echo " " >> $NAME.pbs
+
 	echo 'cd $PBS_O_WORKDIR' >> $NAME.pbs
 	echo " " >> $NAME.pbs
 
@@ -168,7 +188,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	echo "fi" >> $NAME.pbs
 
 	#NOTE: NOT COMPLETE YET!	
-	echo "grompp -f $MDP -p $TOP -c $GRO -t $CPT -o $NAME/md_$NAME $WARN" >> $NAME.pbs
+	echo "grompp -f $MDP -p $TOP -c $GRO -t $CPT -o $NAME/md_$NAME $WARN -po $NAME/$NAME.mdp" >> $NAME.pbs
 	echo "cd $NAME" >> $NAME.pbs
 	if [ $QUEUE = "cm_serial" ]; then
 		echo "mdrun -nt 1 -v -deffnm md_$NAME >& qsub_mdrun.log" >> $NAME.pbs
