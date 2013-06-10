@@ -125,15 +125,18 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	
 	GROMACS_VERSION=
 	GROMPP=
-	MDRUN=
+	MDRUN1=
+	MDRUN2=
 	CORE_RESOURCE_1=
 	CORE_RESOURCE_2=
+	# QUEUE1 = cm_normal always
 	QUEUE2=
 	FFTW='fftw/3.3.2-intel'
 	if [ $P_THREAD -gt 1 ]; then
 		GROMACS_VERSION='gromacs/4.6-mpi'
 		GROMPP="mpirun -n 1 grompp_mpi"
-		MDRUN="mpirun -n $P_THREAD mdrun_mpi"
+		MDRUN1="mpirun -n $P_THREAD mdrun_mpi"
+		MDRUN2="mpirun -n $P_THREAD mdrun_mpi"
 		QUEUE2='cm_normal'
 		CORE_RESOURCE_1="nodes=$(($P_THREAD/16)):ppn=16:catamount"
 		CORE_RESOURCE_2="nodes=$(($P_THREAD/16)):ppn=16:catamount"
@@ -202,7 +205,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 	#---------------------------------------
 	# Run the trajectories, array style
 	#---------------------------------------
-	echo "#PBS -N $NAME-gmx-traj" > $NAME-traj.pbs
+	echo "#PBS -N $NAME-gmx-traj" >> $NAME-traj.pbs
 	echo "#PBS -q $QUEUE2" >> $NAME-traj.pbs
 	echo "#PBS -l $CORE_RESOURCE_2" >> $NAME-traj.pbs
 	#echo "#PBS -l walltime=01:00:00" >> $NAME-traj.pbs

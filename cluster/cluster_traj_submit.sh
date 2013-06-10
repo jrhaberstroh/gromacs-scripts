@@ -132,6 +132,7 @@ fi
 
 
 if [ $CLUSTER = "CATAMOUNT" ]; then
+	JOBLIST=$(pwd)/joblist
 	if [ $P_THREAD -gt 1 ]; then
 		echo "ERROR: Catamount cluster does not have allow for threading in multi-tenancy serial mode, do not use -P option."
 	else
@@ -180,7 +181,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 		# SUBMIT THE SCRIPT
 			
 			if [ $READY ]; then
-				qsub temp_submit.pbs
+				echo "$(pwd)/temp_submit.pbs" >> $JOBLIST
 			fi
 
 			cd -
