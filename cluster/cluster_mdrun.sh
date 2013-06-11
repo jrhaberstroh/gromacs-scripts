@@ -94,7 +94,7 @@ do
      esac
 done
 
-if [[ -z $MDP ]] || [[ -z $GRO ]] || [[ -z $TOP ]] || [[ -z $CPT ]] || [[ -z $CLUSTER ]]
+if [[ -z $MDP ]] || [[ -z $GRO ]] || [[ -z $TOP ]] || [[ -z $CPT ]] || [[ -z $CLUSTER ]] || [[ -z $NAME ]]
 then
      usage
      exit 1
