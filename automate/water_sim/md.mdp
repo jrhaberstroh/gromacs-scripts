@@ -1,0 +1,61 @@
+;
+; Runtime and IO
+title 		= Water Slab
+integrator	= md
+dt		= .002
+nsteps		= 100000
+; Output data
+nstxout		= 1000		; collect positions
+nstvout		= 1000	 	; collect velocities
+nstxtcout	= 1000	 	; compressed trajectory
+nstenergy	= 1000
+nstlog		= 1000
+;
+;Particle Tracking
+; Bond constraints
+continuation 	= yes
+constraint_algorithm = lincs
+constraints	= all-bonds
+lincs_iter	= 3		; [(lincs_iter + 1) * lincs_order = accuracy]
+lincs_order	= 2		; smaller lincs_order means more parallelization
+; Neighbors
+ns_type		= grid		; Particularly efficient for water
+nstlist		= 5		; Number of steps before update neighbor list update (10 fs)
+rlist		= 1.0		; Neighbor list size (10 angstrom)
+;
+;Geometry and Energetics
+; Electrostatics
+coulombtype	= PME		; Particle-mesh Ewald Summation
+rcoulomb	= 1.0		; 10 angstrom coulomb cutoff
+rvdw		= 1.0		; 10 angstrom Van Der Waals cutoff
+pme_order	= 4		; [fourierspacing * pme_order = accuracy]
+fourierspacing	= 0.16		; larger fourierspacing decreases load imbalance
+ewald_rtol	= 1e-5
+optimize_fft	= yes
+DispCorr	= EnerPres	; correct for vdw cutoff
+; Wall parameters: from suggestions in gromacs mdp manual
+pbc 		= xy		; pbc in xy only
+nwall		= 2		; wall at z=0 and z=z-box
+wall-type	= 10-4		; direct 12-6 LJ as fn of distance from wall
+wall-density	= 5 5
+wall-atomtype 	= CA CA
+wall-r-linpot	= -1
+ewald-geometry	= 3dc		; Only Ewald sum compatible with slab geometry, requires box_height >= slab_height * 3
+wall-ewald-zfac = 3		; Extra empty space for slab geometry calculation (reducing coulomb interaction)
+;
+; Bath Interactions
+; Berendsen temperature coupling is on in two groups
+Tcoupl		= V-rescale
+tc-grps		= protein Non-Protein 	; Must span all atoms in simulation
+tau_t		= 0.1	0.1
+ref_t		= 300	300
+; Pressure coupling is on
+Pcoupl		= Parrinello-Rahman
+pcoupltype	= isotropic
+tau_p		= 2.0
+ref_p		= 1.0
+compressibility	= 4.5e-5
+refcoord_scaling= com
+; Velocity generation
+gen_vel		= no
+

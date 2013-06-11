@@ -27,6 +27,8 @@ OPTIONS:
 EOF
 }
 
+#MDP is the trajectory .mdp file, non-equilibrium
+#TIMEMDP is the spacer .mdp file, equilibrium
 MDP=
 TIMEMDP=
 TOP=
@@ -132,6 +134,7 @@ fi
 
 
 if [ $CLUSTER = "CATAMOUNT" ]; then
+	JOBLIST=$(pwd)/joblist
 	if [ $P_THREAD -gt 1 ]; then
 		echo "ERROR: Catamount cluster does not have allow for threading in multi-tenancy serial mode, do not use -P option."
 	else
@@ -143,6 +146,7 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 			echo "BASE: " $BASE
 		
 		# GENERATE THE SCRIPT
+			echo "#!/bin/bash" > temp_submit.pbs
 			echo "#PBS -N gmx_traj_$BASE" > temp_submit.pbs
 			echo "#PBS -q cm_serial" >> temp_submit.pbs
 			echo "#PBS -l nodes=1:ppn=1:cmserial" >> temp_submit.pbs
@@ -179,9 +183,8 @@ if [ $CLUSTER = "CATAMOUNT" ]; then
 			echo "done" >> temp_submit.pbs
 		# SUBMIT THE SCRIPT
 			
-			if [ $READY ]; then
-				qsub temp_submit.pbs
-			fi
+			echo "Adding job to $JOBLIST"
+			echo "$(pwd)/temp_submit.pbs" >> $JOBLIST
 
 			cd -
 		done

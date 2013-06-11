@@ -184,7 +184,7 @@ if [ $CLUSTER = "HOPPER" ]; then
 	#---------------------------------------
 	# Run the trajectories, array style
 	#---------------------------------------
-	echo "#PBS -N $NAME-gmx-traj" > $NAME-traj.pbs
+	echo "#PBS -N $NAME-gmx-traj" >> $NAME-traj.pbs
 	echo "#PBS -q $QUEUE2" >> $NAME-traj.pbs
 	echo "#PBS -l $CORE_RESOURCE_2" >> $NAME-traj.pbs
 	#echo "#PBS -l walltime=01:00:00" >> $NAME-traj.pbs

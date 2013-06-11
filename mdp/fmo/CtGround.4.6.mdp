@@ -2,7 +2,7 @@ title		= TMV
 ; Run parameters
 integrator	= md
 dt		= 0.0005		; 2 fs !
-nsteps		= 20000000		; total 10 ns
+nsteps		= 2000000		; total 1 ns
 ; Outputs every 10 fs
 nstxout		= 4000	 	; collect positions
 nstvout		= 100000 ; collect velocities
@@ -13,8 +13,8 @@ nstlog		= 10000
 continuation 	= yes
 constraint_algorithm = lincs
 constraints	= all-bonds
-lincs_iter	= 1
-lincs_order	= 4
+lincs_iter	= 3
+lincs_order	= 2
 ; Neighbor stuff
 ns_type		= grid
 nstlist		= 5		; output list every 10 fs
