@@ -117,12 +117,7 @@ if [ $CLUSTER = "HOPPER" ]; then
 
 	GROMACS_VERSION="gromacs/4.6.1-sp"
 	GROMPP="grompp_sp"
-	MDRUN=
-	if [[ $P_THREAD -gt 24 ]]; then
-		MDRUN="aprun -n $P_THREAD mdrun_mpi_sp"
-	else
-		MDRUN="mdrun_sp -ntmpi $P_THREAD"
-	fi
+	MDRUN="aprun -n $P_THREAD mdrun_mpi_sp -nt $P_THREAD"
 
 	# GENERATE THE SCRIPT
 	echo "#PBS -N $NAME-gmx-md" > $NAME.pbs
