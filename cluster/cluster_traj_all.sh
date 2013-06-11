@@ -123,7 +123,8 @@ if [ $CLUSTER = "HOPPER" ]; then
 	GROMACS_VERSION='gromacs/4.6.1-sp'
 	HOPPERMAGIC="CRAY_ROOTFS=DSL"
 	GROMPP="grompp_sp"
-	MDRUN="aprun -n $P_THREAD mdrun_mpi_sp"
+	MDRUN1="aprun -n $P_THREAD mdrun_mpi_sp"
+	MDRUN2="aprun -n $P_THREAD mdrun_mpi_sp"
 	QUEUE2='regular'
 	CORE_RESOURCE_1="mppwidth=$P_THREAD"
 	CORE_RESOURCE_2="mppwidth=$P_THREAD"
@@ -197,7 +198,7 @@ if [ $CLUSTER = "HOPPER" ]; then
 
 	echo "module load $GROMACS_VERSION" >> $NAME-traj.pbs
 	echo "module load $FFTW" >> $NAME-traj.pbs
-	echo "export GMX_MAXBACKUP=-1" >> $NAME-traj.pbs
+	echo "export GMX_MAXBACKUP=-1" >> $NAME-traj.pbs #Prevents crashing due to an overflow of mdrun.mdp files
 	echo " " >> $NAME-traj.pbs
 
 	# Run the mini-spacer for an arbitrary time to make sure we continue to sample the equilibrium distribution of initial configs
