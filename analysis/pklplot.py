@@ -5,9 +5,7 @@ import numpy as np
 from pylab import *
 
 parser = argparse.ArgumentParser(description='Plot a .pkl file with default plotting parameters.')
-parser.add_argument('-f', dest='pkl_name', type=str, help='The file to be plotted.')
-
-
+parser.add_argument('pkl_name', help='The file to be plotted.')
 args = parser.parse_args()
 
 pkl_in = open(args.pkl_name, 'r')

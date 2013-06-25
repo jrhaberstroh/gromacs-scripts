@@ -7,31 +7,25 @@ from pylab import *
 from sys import exit
 
 parser = argparse.ArgumentParser(description='Average over many .xvg energy trajectory files to get the average E(t) and S(t).')
-parser.add_argument('-f', dest='fname', type=str, help='The gromacs energy .xvg file to run autocorrelation on')
-parser.add_argument('-to', dest='start_time', type=float, default=0, help='The time to start at, if part of the trajectory should be ignored. In no particular units, check the file for the unit scheme')
-parser.add_argument('-tf', dest='end_time', type=float, default=0, help='The time to end at, if part of the trajectory should be ignored. In no particular units, check the file for their unit scheme')
+# Positional arguments
+parser.add_argument('xvg_in', dest='fname', help='The gromacs energy .xvg file to run autocorrelation on')
+parser.add_argument('save', dest='pickle_name', help='Add this argument to save the correlation function (as a cPickle object). This script stores the result of autocorrelation with the time axis in units (usually ps in gromacs). There is no default file extension.')
+# Optional arguments
+parser.add_argument('-to', dest='start_time', type=float, default=0, help='The time to start at, if part of the trajectory should be ignored. In the units from xvg_in (usually ps in gromacs).')
+parser.add_argument('-tf', dest='end_time', type=float, default=0, help='The time to end at, if part of the trajectory should be ignored. In the units from xvg_in (usually ps in gromacs).')
 parser.add_argument('-p', dest='lenplot', type=int, default=0, help='The number of data points to plot. Should be passed with --pklplot to allow pklplot to plot anything')
-parser.add_argument('-pkl', dest='pickle_name', type=str, default='', help='Add this argument to pickle the correlation function. Include the extension.')
-parser.add_argument('--pklplot', dest='pickle_in', type=str, default='', help='For plotting old pickles. Skips the main functions, and just plots the pickle.')
-parser.add_argument('-2', dest='half', action='store_const', const=1, default=0, help='Splits the data in half and plots the two halves autocorrelated separately. For error checking.')
+parser.add_argument('-2', dest='half', action='store_true', help='Split the data in half and plot the two halves autocorrelated separately in addition to doing the full autocorrelation (primarily for error checking purposes). Saved half-files will have appended to their file names ".1" and ".2".')
 
 args = parser.parse_args()
-if (args.pickle_in != ''):
-	pkl_in = open(args.pickle_in, 'r')
-	crlf = cPickle.load(pkl_in)
-	plot(crlf[0:args.lenplot])
-	show()
-	exit()
 istimelimit = 0;
 if (args.end_time != 0):
 	istimelimit = 1
-
 
 # MAIN FUNCTION
 e_t = list()
 time = list()
 
-print 'NEW FILE: ' + args.fname
+print 'Computing autocorrelation of: ' + args.fname
 n = 0
 with open(args.fname, 'r') as f:
 	for line in f:
@@ -87,7 +81,7 @@ for i in range(len(crlf)):
 if (args.pickle_name != ""):
 	print "Pickle requested!"
 	pkl_out = open(args.pickle_name, 'w')
-	cPickle.dump(crlf, pkl_out)
+	cPickle.dump((time,crlf), pkl_out)
 	pkl_out.close()
 
 
