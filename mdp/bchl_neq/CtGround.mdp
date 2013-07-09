@@ -12,7 +12,7 @@ nstlog		= 100000
 continuation	= yes		; first dynamics run
 constraint_algorithm = lincs	; holonomic constraints 
 constraints	= all-bonds	; all bonds (even heavy atom-H bonds) constrained
-lincs_iter	= 3		; accuracy of LINCS
+lincs_iter	= 3		; accuracy of LINCS (iter+1 * order = accuracy)
 lincs_order	= 2		; also related to accuracy
 ; Neighborsearching
 ns_type		= grid		; search neighboring grid cells
