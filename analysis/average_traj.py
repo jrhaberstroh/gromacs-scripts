@@ -37,9 +37,13 @@ for fname in args.file_list:
 		if (file_count == 0):
 			e_t = np.array(e_t)
 			time= np.array(time)
+			file_count = file_count + 1;
 		else:
-			e_t = e_t + np.array(e_t_temp)
-		file_count = file_count + 1;
+			try:
+				e_t = e_t + np.array(e_t_temp)
+				file_count = file_count + 1;
+			except ValueError:
+				print "Current .xvg file is not an appropriate size to contribute to the rolling sum. Skipping this file."
 
 
 print [e_t / file_count, time]
